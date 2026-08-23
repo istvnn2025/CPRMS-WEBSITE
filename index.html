@@ -1089,29 +1089,20 @@
 
 
 <script>
-
     // ============================================================
     // PASSWORD SHOW / HIDE
     // ============================================================
 
     function togglePassword(fieldId) {
-
         var input = document.getElementById(fieldId);
         var button = input.nextElementSibling;
 
         if (input.type === "password") {
-
             input.type = "text";
-
-            button.innerHTML =
-                '<i class="fas fa-eye-slash"></i>';
-
+            button.innerHTML = '<i class="fas fa-eye-slash"></i>';
         } else {
-
             input.type = "password";
-
-            button.innerHTML =
-                '<i class="fas fa-eye"></i>';
+            button.innerHTML = '<i class="fas fa-eye"></i>';
         }
     }
 
@@ -1127,11 +1118,8 @@
     var createBox = document.getElementById("createAccountBox");
     var adminBox = document.getElementById("adminLoginBox");
 
-    var showCreateAccount =
-        document.getElementById("showCreateAccount");
-
-    var showLogin =
-        document.getElementById("showLogin");
+    var showCreateAccount = document.getElementById("showCreateAccount");
+    var showLogin = document.getElementById("showLogin");
 
 
     // ============================================================
@@ -1139,11 +1127,9 @@
     // ============================================================
 
     function showUserLogin() {
-
         userBox.classList.remove("hidden");
         createBox.classList.add("hidden");
         adminBox.classList.add("hidden");
-
         userTab.classList.add("active");
         adminTab.classList.remove("active");
     }
@@ -1154,11 +1140,9 @@
     // ============================================================
 
     function showCreateAccountPage() {
-
         userBox.classList.add("hidden");
         createBox.classList.remove("hidden");
         adminBox.classList.add("hidden");
-
         userTab.classList.add("active");
         adminTab.classList.remove("active");
     }
@@ -1169,485 +1153,277 @@
     // ============================================================
 
     function showAdminLogin() {
-
         userBox.classList.add("hidden");
         createBox.classList.add("hidden");
         adminBox.classList.remove("hidden");
-
         adminTab.classList.add("active");
         userTab.classList.remove("active");
     }
 
 
-    showCreateAccount.addEventListener(
-        "click",
-        showCreateAccountPage
-    );
+    showCreateAccount.addEventListener("click", showCreateAccountPage);
+    showLogin.addEventListener("click", showUserLogin);
+    userTab.addEventListener("click", showUserLogin);
+    adminTab.addEventListener("click", showAdminLogin);
 
-    showLogin.addEventListener(
-        "click",
-        showUserLogin
-    );
 
-    userTab.addEventListener(
-        "click",
-        showUserLogin
-    );
+    // ============================================================
+    // CHECK IF SUPABASE FUNCTIONS ARE LOADED
+    // ============================================================
 
-    adminTab.addEventListener(
-        "click",
-        showAdminLogin
-    );
+    console.log('🔍 Checking Supabase functions...');
+    console.log('typeof getUserByEmail:', typeof getUserByEmail);
+    console.log('typeof createUser:', typeof createUser);
+    console.log('typeof createProfile:', typeof createProfile);
+    console.log('typeof updateUser:', typeof updateUser);
+    console.log('typeof upsertActiveUser:', typeof upsertActiveUser);
+
+    if (typeof getUserByEmail === 'undefined') {
+        console.error('❌ getUserByEmail is not defined! Check supabase-config.js');
+    } else {
+        console.log('✅ Supabase functions loaded successfully!');
+    }
 
 
     // ============================================================
     // CREATE USER ACCOUNT - UPDATED WITH SUPABASE
     // ============================================================
 
-    document
-        .getElementById("createAccountForm")
-        .addEventListener("submit", async function(e) {
+    document.getElementById("createAccountForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
 
-            e.preventDefault();
+        var name = document.getElementById("registerName").value.trim();
+        var email = document.getElementById("registerEmail").value.trim();
+        var password = document.getElementById("registerPassword").value;
+        var confirmPassword = document.getElementById("confirmPassword").value;
 
-            var name =
-                document.getElementById("registerName")
-                    .value.trim();
+        var error = document.getElementById("registerError");
+        var success = document.getElementById("registerSuccess");
 
-            var email =
-                document.getElementById("registerEmail")
-                    .value.trim();
+        error.classList.remove("show");
+        success.classList.remove("show");
 
-            var password =
-                document.getElementById("registerPassword")
-                    .value;
+        // CHECK EMPTY FIELDS
+        if (!name || !email || !password || !confirmPassword) {
+            error.querySelector("span").textContent = "Please complete all fields.";
+            error.classList.add("show");
+            return;
+        }
 
-            var confirmPassword =
-                document.getElementById("confirmPassword")
-                    .value;
+        // CHECK EMAIL
+        if (!email.includes("@")) {
+            error.querySelector("span").textContent = "Please enter a valid email address.";
+            error.classList.add("show");
+            return;
+        }
 
+        // CHECK PASSWORD LENGTH
+        if (password.length < 6) {
+            error.querySelector("span").textContent = "Password must be at least 6 characters.";
+            error.classList.add("show");
+            return;
+        }
 
-            var error =
-                document.getElementById("registerError");
+        // CHECK PASSWORD MATCH
+        if (password !== confirmPassword) {
+            error.querySelector("span").textContent = "Passwords do not match.";
+            error.classList.add("show");
+            return;
+        }
 
-            var success =
-                document.getElementById("registerSuccess");
+        try {
+            // ===== CHECK IF USER EXISTS IN SUPABASE =====
+            var existingUser = await getUserByEmail(email);
 
-
-            error.classList.remove("show");
-            success.classList.remove("show");
-
-
-            // CHECK EMPTY FIELDS
-
-            if (!name || !email || !password || !confirmPassword) {
-
-                error.querySelector("span").textContent =
-                    "Please complete all fields.";
-
+            if (existingUser) {
+                error.querySelector("span").textContent = "An account with this email already exists.";
                 error.classList.add("show");
-
                 return;
             }
 
+            // ===== CREATE USER IN SUPABASE =====
+            await createUser({
+                email: email,
+                name: name,
+                password: password,
+                user_type: 'user'
+            });
 
-            // CHECK EMAIL
+            // ===== CREATE PROFILE IN SUPABASE =====
+            await createProfile({
+                email: email,
+                name: name,
+                user_type: 'Resident',
+                member_since: new Date().toISOString()
+            });
 
-            if (!email.includes("@")) {
+            // SUCCESS
+            success.querySelector("span").textContent = "Account created successfully! Please log in.";
+            success.classList.add("show");
 
-                error.querySelector("span").textContent =
-                    "Please enter a valid email address.";
+            // CLEAR FORM
+            document.getElementById("createAccountForm").reset();
 
-                error.classList.add("show");
+            // GO BACK TO LOGIN
+            setTimeout(function() {
+                showUserLogin();
+                document.getElementById("userEmail").value = email;
+            }, 1500);
 
-                return;
-            }
-
-
-            // CHECK PASSWORD LENGTH
-
-            if (password.length < 6) {
-
-                error.querySelector("span").textContent =
-                    "Password must be at least 6 characters.";
-
-                error.classList.add("show");
-
-                return;
-            }
-
-
-            // CHECK PASSWORD MATCH
-
-            if (password !== confirmPassword) {
-
-                error.querySelector("span").textContent =
-                    "Passwords do not match.";
-
-                error.classList.add("show");
-
-                return;
-            }
-
-
-            try {
-
-                // ===== CHECK IF USER EXISTS IN SUPABASE =====
-                var existingUser = await getUserByEmail(email);
-
-                if (existingUser) {
-
-                    error.querySelector("span").textContent =
-                        "An account with this email already exists.";
-
-                    error.classList.add("show");
-
-                    return;
-                }
-
-
-                // ===== CREATE USER IN SUPABASE =====
-                await createUser({
-                    email: email,
-                    name: name,
-                    password: password,
-                    user_type: 'user'
-                });
-
-
-                // ===== CREATE PROFILE IN SUPABASE =====
-                await createProfile({
-                    email: email,
-                    name: name,
-                    user_type: 'Resident',
-                    member_since: new Date().toISOString()
-                });
-
-
-                // SUCCESS
-
-                success.querySelector("span").textContent =
-                    "Account created successfully! Please log in.";
-
-                success.classList.add("show");
-
-
-                // CLEAR FORM
-
-                document.getElementById(
-                    "createAccountForm"
-                ).reset();
-
-
-                // GO BACK TO LOGIN
-
-                setTimeout(function() {
-
-                    showUserLogin();
-
-                    document.getElementById(
-                        "userEmail"
-                    ).value = email;
-
-                }, 1500);
-
-            } catch (err) {
-
-                console.error('Registration error:', err);
-
-                error.querySelector("span").textContent =
-                    "An error occurred. Please try again.";
-
-                error.classList.add("show");
-            }
-
-        });
+        } catch (err) {
+            console.error('Registration error:', err);
+            error.querySelector("span").textContent = "Error: " + err.message;
+            error.classList.add("show");
+        }
+    });
 
 
     // ============================================================
     // USER LOGIN - UPDATED WITH SUPABASE
     // ============================================================
 
-    document
-        .getElementById("userForm")
-        .addEventListener("submit", async function(e) {
+    document.getElementById("userForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
 
-            e.preventDefault();
+        var email = document.getElementById("userEmail").value.trim();
+        var password = document.getElementById("userPassword").value;
 
+        var error = document.getElementById("userError");
+        var success = document.getElementById("userSuccess");
 
-            var email =
-                document.getElementById("userEmail")
-                    .value.trim();
+        error.classList.remove("show");
+        success.classList.remove("show");
 
-            var password =
-                document.getElementById("userPassword")
-                    .value;
+        // CHECK EMPTY
+        if (!email || !password) {
+            error.querySelector("span").textContent = "Please enter your email and password.";
+            error.classList.add("show");
+            return;
+        }
 
+        try {
+            // ===== CHECK USER IN SUPABASE =====
+            var user = await getUserByEmail(email);
 
-            var error =
-                document.getElementById("userError");
-
-            var success =
-                document.getElementById("userSuccess");
-
-
-            error.classList.remove("show");
-            success.classList.remove("show");
-
-
-            // CHECK EMPTY
-
-            if (!email || !password) {
-
-                error.querySelector("span").textContent =
-                    "Please enter your email and password.";
-
+            // NO ACCOUNT
+            if (!user) {
+                error.querySelector("span").textContent = "No account found. Please create an account first.";
                 error.classList.add("show");
-
                 return;
             }
 
-
-            try {
-
-                // ===== CHECK USER IN SUPABASE =====
-                var user = await getUserByEmail(email);
-
-
-                // NO ACCOUNT
-
-                if (!user) {
-
-                    error.querySelector("span").textContent =
-                        "No account found. Please create an account first.";
-
-                    error.classList.add("show");
-
-                    return;
-                }
-
-
-                // CHECK PASSWORD
-
-                if (password !== user.password) {
-
-                    error.querySelector("span").textContent =
-                        "Incorrect email or password.";
-
-                    error.classList.add("show");
-
-                    return;
-                }
-
-
-                // ===== UPDATE LAST LOGIN =====
-                await updateUser(email, {
-                    last_login: new Date().toISOString()
-                });
-
-
-                // ===== LOGIN SUCCESS =====
-
-                sessionStorage.clear();
-
-                sessionStorage.setItem(
-                    "userEmail",
-                    user.email
-                );
-
-                sessionStorage.setItem(
-                    "userName",
-                    user.name
-                );
-
-                sessionStorage.setItem(
-                    "userType",
-                    user.user_type || 'user'
-                );
-
-                // Remove admin session if exists
-                sessionStorage.removeItem("adminLoggedIn");
-
-
-                // ===== REGISTER AS ACTIVE USER =====
-                await upsertActiveUser({
-                    id: user.email,
-                    name: user.name,
-                    email: user.email,
-                    initials: user.name.split(' ').map(n => n[0]).join('').toUpperCase(),
-                    last_active: new Date().toISOString(),
-                    status: 'online'
-                });
-
-
-                success.querySelector("span").textContent =
-                    "Login successful! Redirecting...";
-
-                success.classList.add("show");
-
-
-                var submitBtn =
-                    this.querySelector(
-                        'button[type="submit"]'
-                    );
-
-                submitBtn.disabled = true;
-
-                submitBtn.innerHTML =
-                    '<i class="fas fa-spinner fa-spin"></i> Redirecting...';
-
-
-                setTimeout(function() {
-
-                    window.location.href =
-                        "dashboard.html";
-
-                }, 1500);
-
-            } catch (err) {
-
-                console.error('Login error:', err);
-
-                error.querySelector("span").textContent =
-                    "An error occurred. Please try again.";
-
+            // CHECK PASSWORD
+            if (password !== user.password) {
+                error.querySelector("span").textContent = "Incorrect email or password.";
                 error.classList.add("show");
+                return;
             }
 
-        });
+            // ===== UPDATE LAST LOGIN =====
+            await updateUser(email, {
+                last_login: new Date().toISOString()
+            });
+
+            // ===== LOGIN SUCCESS =====
+            sessionStorage.clear();
+
+            sessionStorage.setItem("userEmail", user.email);
+            sessionStorage.setItem("userName", user.name);
+            sessionStorage.setItem("userType", user.user_type || 'user');
+
+            // Remove admin session if exists
+            sessionStorage.removeItem("adminLoggedIn");
+
+            // ===== REGISTER AS ACTIVE USER =====
+            await upsertActiveUser({
+                id: user.email,
+                name: user.name,
+                email: user.email,
+                initials: user.name.split(' ').map(function(n) { return n[0]; }).join('').toUpperCase(),
+                last_active: new Date().toISOString(),
+                status: 'online'
+            });
+
+            success.querySelector("span").textContent = "Login successful! Redirecting...";
+            success.classList.add("show");
+
+            var submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Redirecting...';
+
+            setTimeout(function() {
+                window.location.href = "dashboard.html";
+            }, 1500);
+
+        } catch (err) {
+            console.error('Login error:', err);
+            error.querySelector("span").textContent = "Error: " + err.message;
+            error.classList.add("show");
+        }
+    });
 
 
     // ============================================================
     // ADMIN LOGIN
     // ============================================================
 
-    document
-        .getElementById("adminForm")
-        .addEventListener("submit", function(e) {
+    document.getElementById("adminForm").addEventListener("submit", function(e) {
+        e.preventDefault();
 
-            e.preventDefault();
+        var email = document.getElementById("adminEmail").value.trim();
+        var password = document.getElementById("adminPassword").value;
 
+        var error = document.getElementById("adminError");
+        var success = document.getElementById("adminSuccess");
 
-            var email =
-                document.getElementById("adminEmail")
-                    .value.trim();
+        error.classList.remove("show");
+        success.classList.remove("show");
 
-            var password =
-                document.getElementById("adminPassword")
-                    .value;
+        if (!email || !password) {
+            error.querySelector("span").textContent = "Please enter both email and password.";
+            error.classList.add("show");
+            return;
+        }
 
+        // ADMIN CREDENTIALS
+        if (email === "admin@gmail.com" && password === "admin123") {
+            sessionStorage.clear();
 
-            var error =
-                document.getElementById("adminError");
+            sessionStorage.setItem("adminLoggedIn", "true");
+            sessionStorage.setItem("adminEmail", email);
+            sessionStorage.setItem("userType", "admin");
 
-            var success =
-                document.getElementById("adminSuccess");
+            success.querySelector("span").textContent = "Login successful! Redirecting...";
+            success.classList.add("show");
 
+            var submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Redirecting...';
 
-            error.classList.remove("show");
-            success.classList.remove("show");
+            setTimeout(function() {
+                window.location.href = "adminDashboard.html";
+            }, 1500);
 
-
-            if (!email || !password) {
-
-                error.querySelector("span").textContent =
-                    "Please enter both email and password.";
-
-                error.classList.add("show");
-
-                return;
-            }
-
-
-            // ADMIN CREDENTIALS
-
-            if (
-                email === "admin@gmail.com" &&
-                password === "admin123"
-            ) {
-
-                sessionStorage.clear();
-
-                sessionStorage.setItem(
-                    "adminLoggedIn",
-                    "true"
-                );
-
-                sessionStorage.setItem(
-                    "adminEmail",
-                    email
-                );
-
-                sessionStorage.setItem(
-                    "userType",
-                    "admin"
-                );
-
-
-                success.querySelector("span").textContent =
-                    "Login successful! Redirecting...";
-
-                success.classList.add("show");
-
-
-                var submitBtn =
-                    this.querySelector(
-                        'button[type="submit"]'
-                    );
-
-                submitBtn.disabled = true;
-
-                submitBtn.innerHTML =
-                    '<i class="fas fa-spinner fa-spin"></i> Redirecting...';
-
-
-                setTimeout(function() {
-
-                    window.location.href =
-                        "adminDashboard.html";
-
-                }, 1500);
-
-
-            } else {
-
-                error.querySelector("span").textContent =
-                    "Invalid admin credentials. Please try again.";
-
-                error.classList.add("show");
-
-                document.getElementById(
-                    "adminPassword"
-                ).value = "";
-
-            }
-
-        });
+        } else {
+            error.querySelector("span").textContent = "Invalid admin credentials. Please try again.";
+            error.classList.add("show");
+            document.getElementById("adminPassword").value = "";
+        }
+    });
 
 
     // ============================================================
     // SESSION CHECK - UPDATED
     // ============================================================
 
-    var isAdminLoggedIn =
-        sessionStorage.getItem("adminLoggedIn") === "true";
-
-    var isUserLoggedIn =
-        sessionStorage.getItem("userEmail") !== null;
-
-    var userType =
-        sessionStorage.getItem("userType");
-
+    var isAdminLoggedIn = sessionStorage.getItem("adminLoggedIn") === "true";
+    var userEmail = sessionStorage.getItem("userEmail");
+    var userType = sessionStorage.getItem("userType");
 
     if (isAdminLoggedIn || userType === "admin") {
-
-        window.location.href =
-            "adminDashboard.html";
-
-    } else if (isUserLoggedIn && userType === "user") {
-
-        window.location.href =
-            "dashboard.html";
+        window.location.href = "adminDashboard.html";
+    } else if (userEmail && userType === "user") {
+        window.location.href = "dashboard.html";
     }
 
 
@@ -1655,41 +1431,19 @@
     // ENTER KEY SUPPORT
     // ============================================================
 
-    document
-        .querySelectorAll("input")
-        .forEach(function(input) {
-
-            input.addEventListener(
-                "keypress",
-                function(e) {
-
-                    if (e.key === "Enter") {
-
-                        e.preventDefault();
-
-                        var form =
-                            this.closest("form");
-
-                        if (form) {
-
-                            form.querySelector(
-                                'button[type="submit"]'
-                            ).click();
-
-                        }
-
-                    }
-
+    document.querySelectorAll("input").forEach(function(input) {
+        input.addEventListener("keypress", function(e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                var form = this.closest("form");
+                if (form) {
+                    form.querySelector('button[type="submit"]').click();
                 }
-            );
-
+            }
         });
+    });
 
-
-    console.log(
-        "CPRMS Login System Ready with Supabase"
-    );
-
+    console.log("CPRMS Login System Ready with Supabase");
 </script>
 
 </body>
