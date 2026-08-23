@@ -4,11 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Pagbilao · Permit Form</title>
+    
+    <!-- ===== 1. FONT AWESOME FIRST ===== -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
     <link rel="stylesheet" href="dashboard.css" />
     
-    <!-- ===== SUPABASE - ADDED ===== -->
+    <!-- ===== 2. SUPABASE LIBRARY SECOND ===== -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- ===== 3. SUPABASE CONFIG THIRD ===== -->
     <script src="supabase-config.js"></script>
     
     <style>
@@ -215,7 +219,6 @@
             cursor: crosshair;
         }
 
-        /* ===== UPDATED: Center-aligned, no underline, black cursor ===== */
         .editable-field {
             position: absolute;
             pointer-events: auto;
@@ -234,7 +237,6 @@
             white-space: nowrap;
             overflow: visible;
             caret-color: #1f1414;
-            /* ===== CENTER ALIGNMENT ===== */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -280,22 +282,6 @@
         .editable-field .delete-btn:hover {
             transform: scale(1.1);
             background: #c82333;
-        }
-
-        /* ===== CURSOR/LINE GUIDE ===== */
-        .cursor-guide {
-            position: absolute;
-            pointer-events: none;
-            border-left: 2px solid #b31b1b;
-            height: 20px;
-            z-index: 8;
-            display: none;
-            animation: blink 1s step-end infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
         }
 
         .add-text-prompt {
@@ -1431,7 +1417,7 @@
                 const now = new Date();
                 const today = now.toISOString().split('T')[0];
                 const nowFormatted = formatDateTime(now);
-                const timestamp = now.toISOString();  // ← ADDED: Proper ISO timestamp
+                const timestamp = now.toISOString();
 
                 // Generate Application ID
                 const appId = 'APP-2026-' + String(Math.floor(Math.random() * 1000)).padStart(3, '0');
@@ -1452,7 +1438,7 @@
                     additionalInfo: 'Fields: ' + allFields.length,
                     fields: allFields,
                     totalPages: totalPages,
-                    timestamp: timestamp  // ← ADDED
+                    timestamp: timestamp
                 };
 
                 // ============================================================
@@ -1476,7 +1462,7 @@
                     appId: appId,
                     isPending: true,
                     archived: false,
-                    created: timestamp  // ← ADDED
+                    created: timestamp
                 };
 
                 const permits = JSON.parse(localStorage.getItem('userPermits') || '[]');
@@ -1497,7 +1483,7 @@
                     iconClass: 'fa-info-circle',
                     message: 'You filed a new <strong>' + displayName + '</strong> application (' + appId + ')',
                     time: nowFormatted,
-                    timestamp: timestamp,  // ← ADDED: This is the key fix!
+                    timestamp: timestamp,
                     unread: true
                 });
                 localStorage.setItem('userNotifications', JSON.stringify(notifications));
