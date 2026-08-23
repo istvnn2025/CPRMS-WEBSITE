@@ -2,14 +2,12 @@
 // SUPABASE CONFIGURATION
 // ============================================================
 
-// Step 1: Your Project URL (from Settings → API)
+// Your Supabase credentials
 const SUPABASE_URL = 'https://aqrwojihqnooaxiytgmv.supabase.co';
-
-// Step 2: Your ANON Key (from Settings → API)
 const SUPABASE_ANON_KEY = 'sb_publishable_S1SjM1Gq-LxeCZks88QwgQ_rbXus_';
 
-// Step 3: Initialize Supabase
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Initialize Supabase client
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 console.log('✅ Supabase connected!');
 console.log('🔗 URL:', SUPABASE_URL);
@@ -224,3 +222,5 @@ async function updateProfile(email, updates) {
     if (error) throw error;
     return data;
 }
+
+console.log('✅ Supabase functions ready!');
