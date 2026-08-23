@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Basic Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Basic Test</h1>
+    <div id="result">Waiting...</div>
+
+    <script>
+        document.getElementById('result').textContent = 'Step 1: Script started...';
+
+        // Check if Supabase loaded
+        document.getElementById('result').textContent = 'Step 2: Checking Supabase...';
+
+        if (typeof window.supabase === 'undefined') {
+            document.getElementById('result').innerHTML = `
+                <p style="color:red;">❌ Supabase library not loaded!</p>
+                <p>window.supabase is undefined</p>
+            `;
+        } else {
+            document.getElementById('result').innerHTML = `
+                <p style="color:green;">✅ Supabase library loaded!</p>
+                <p>Creating client...</p>
+            `;
+
+            try {
+                const supabase = window.supabase.createClient(
+                    'https://aqrwojihqnooaxiytgmv.supabase.co',
+                    'sb_publishable_S1SjM1Gq-LxeCZks88QwgQ_rbXus_'
+                );
+
+                document.getElementById('result').innerHTML = `
+                    <p style="color:green;">✅ Client created!</p>
+                    <p>typeof supabase.from: ${typeof supabase.from}</p>
+                `;
+
+                if (typeof supabase.from === 'function') {
+                    document.getElementById('result').innerHTML = `
+                        <p style="color:green;">✅ Everything works!</p>
+                        <p>Supabase is ready to use.</p>
+                    `;
+                } else {
+                    document.getElementById('result').innerHTML = `
+                        <p style="color:red;">❌ supabase.from is not a function!</p>
+                        <p>Type: ${typeof supabase.from}</p>
+                    `;
+                }
+            } catch (err) {
+                document.getElementById('result').innerHTML = `
+                    <p style="color:red;">❌ Error: ${err.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
