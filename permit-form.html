@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Pagbilao · Permit Form</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link rel="stylesheet" href="dashboard.css" />
+    <style>
+        /* ===== PERMIT FORM STYLES INSIDE DASHBOARD ===== */
+        .permit-form-container {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid #f0e6e6;
+            position: relative;
+        }
+
+        .form-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f0e6e6;
+            flex-wrap: wrap;
+        }
+
+        .form-header .back-btn {
+            background: none;
+            border: none;
+            font-size: 1rem;
+            color: #b31b1b;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .form-header .back-btn:hover {
+            background: #fce8e6;
+        }
+
+        .form-header .back-btn i {
+            font-size: 1.1rem;
+        }
+
+        .permit-type-section {
+            margin-bottom: 2rem;
+        }
+
+        .permit-type-section h3 {
+            font-size: 1.1rem;
+            color: #3d2626;
+            margin-bottom: 0.5rem;
+        }
+
+        .permit-type-section h3 i {
+            color: #b31b1b;
+            margin-right: 8px;
+        }
+
+        .permit-type-section p {
+            color: #8a7a7a;
+            font-size: 0.9rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .permit-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1rem;
+        }
+
+        .permit-option {
+            background: #faf7f7;
+            border: 2px solid #f0e6e6;
+            border-radius: 12px;
+            padding: 1.2rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            min-height: 60px;
+            text-align: center;
+        }
+
+        .permit-option:hover {
+            border-color: #b31b1b;
+            background: #fef7f7;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(179, 27, 27, 0.1);
+        }
+
+        .permit-option .permit-info h4 {
+            font-size: 0.95rem;
+            color: #1f1414;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        /* ===== FULL SCREEN IMAGE VIEWER - SCROLLABLE ===== */
+        .image-viewer-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f0f0f0;
+            z-index: 9999;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 0;
+        }
+
+        .image-viewer-overlay.active {
+            display: block;
+        }
+
+        .image-viewer-modal {
+            background: white;
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .image-viewer-modal .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 2rem;
+            background: #f8f5f5;
+            border-bottom: 2px solid #f0e6e6;
+            flex-shrink: 0;
+            z-index: 10;
+            position: sticky;
+            top: 0;
+            background: #f8f5f5;
+        }
+
+        .image-viewer-modal .modal-header h3 {
+            color: #3d2626;
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .image-viewer-modal .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            color: #b31b1b;
+            cursor: pointer;
+            padding: 0 0.5rem;
+            transition: 0.3s;
+        }
+
+        .image-viewer-modal .close-btn:hover {
+            color: #8a1515;
+            transform: rotate(90deg);
+        }
+
+        .image-viewer-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 2rem 6rem 2rem;
+            position: relative;
+            background: white;
+            min-height: 100vh;
+        }
+
+        .image-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            cursor: crosshair;
+        }
+
+        .image-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+            user-select: none;
+            -webkit-user-drag: none;
+            background: white;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Editable overlay */
+        .editable-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: auto;
+            cursor: crosshair;
+        }
+
+        /* ===== UPDATED: Center-aligned, no underline, black cursor ===== */
+        .editable-field {
+            position: absolute;
+            pointer-events: auto;
+            cursor: text;
+            min-width: 40px;
+            min-height: 30px;
+            padding: 2px 6px;
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+            color: #1f1414;
+            background: transparent;
+            border: none;
+            outline: none;
+            z-index: 10;
+            line-height: 1.4;
+            white-space: nowrap;
+            overflow: visible;
+            caret-color: #1f1414;
+            /* ===== CENTER ALIGNMENT ===== */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transform: translate(-50%, -50%);
+        }
+
+        .editable-field:focus {
+            background: rgba(0, 0, 0, 0.03);
+            border: none;
+            outline: none;
+        }
+
+        .editable-field:hover {
+            border: none;
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        .editable-field .delete-btn {
+            position: absolute;
+            top: -14px;
+            right: -14px;
+            width: 20px;
+            height: 20px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 10px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            z-index: 20;
+            transition: 0.2s;
+        }
+
+        .editable-field:hover .delete-btn {
+            display: flex;
+        }
+
+        .editable-field .delete-btn:hover {
+            transform: scale(1.1);
+            background: #c82333;
+        }
+
+        /* ===== CURSOR/LINE GUIDE ===== */
+        .cursor-guide {
+            position: absolute;
+            pointer-events: none;
+            border-left: 2px solid #b31b1b;
+            height: 20px;
+            z-index: 8;
+            display: none;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .add-text-prompt {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgba(179, 27, 27, 0.2);
+            font-size: 1.2rem;
+            pointer-events: none;
+            text-align: center;
+            display: block;
+            z-index: 5;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+        }
+
+        .add-text-prompt i {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .add-text-prompt.hidden {
+            display: none;
+        }
+
+        /* Image controls - sticky bottom */
+        .image-controls {
+            display: flex;
+            gap: 1rem;
+            padding: 0.8rem 2rem;
+            background: #f8f5f5;
+            border-top: 2px solid #f0e6e6;
+            flex-wrap: wrap;
+            justify-content: center;
+            flex-shrink: 0;
+            z-index: 10;
+            position: sticky;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #f8f5f5;
+        }
+
+        .image-controls button {
+            padding: 0.6rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .image-controls .front-btn {
+            background: #b31b1b;
+            color: white;
+        }
+
+        .image-controls .front-btn:hover {
+            background: #8a1515;
+        }
+
+        .image-controls .back-btn-img {
+            background: #4a4a4a;
+            color: white;
+        }
+
+        .image-controls .back-btn-img:hover {
+            background: #333;
+        }
+
+        .image-controls .save-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .image-controls .save-btn:hover {
+            background: #1e7e34;
+        }
+
+        .image-controls .clear-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .image-controls .clear-btn:hover {
+            background: #c82333;
+        }
+
+        .image-controls .submit-btn {
+            background: #b31b1b;
+            color: white;
+        }
+
+        .image-controls .submit-btn:hover {
+            background: #8a1515;
+        }
+
+        .page-indicator {
+            color: #6c757d;
+            font-size: 0.85rem;
+            padding: 0.3rem 1.2rem;
+            background: #f0e6e6;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .page-dots {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .page-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 2px solid #b31b1b;
+            background: transparent;
+            cursor: pointer;
+            padding: 0;
+            transition: 0.3s;
+        }
+
+        .page-dot.active {
+            background: #b31b1b;
+        }
+
+        .page-dot:hover {
+            transform: scale(1.2);
+        }
+
+        /* ===== SUCCESS OVERLAY ===== */
+        .success-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .success-overlay.active {
+            display: flex;
+        }
+
+        .success-modal {
+            background: white;
+            border-radius: 24px;
+            padding: 2.5rem;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .success-modal .success-icon {
+            font-size: 4rem;
+            color: #28a745;
+            margin-bottom: 1rem;
+        }
+
+        .success-modal h3 {
+            font-size: 1.5rem;
+            color: #1f1414;
+            margin-bottom: 0.5rem;
+        }
+
+        .success-modal p {
+            color: #6b5a5a;
+            margin-bottom: 1rem;
+        }
+
+        .success-modal .btn-dashboard {
+            background: #b31b1b;
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 1rem;
+        }
+
+        .success-modal .btn-dashboard:hover {
+            background: #8a1515;
+            transform: translateY(-2px);
+        }
+
+        /* ============================================================
+           RESPONSIVE - MOBILE VIEW
+           ============================================================ */
+
+        @media (max-width: 850px) {
+            .permit-form-container {
+                padding: 1rem;
+            }
+
+            .form-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .form-header .back-btn {
+                font-size: 0.85rem;
+                padding: 0.4rem 0.8rem;
+            }
+
+            #permitTypeDisplay {
+                font-size: 0.9rem;
+                margin-left: 0 !important;
+            }
+
+            .permit-type-section h3 {
+                font-size: 0.95rem;
+            }
+
+            .permit-type-section p {
+                font-size: 0.8rem;
+            }
+
+            .permit-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.6rem;
+            }
+
+            .permit-option {
+                padding: 0.8rem 0.5rem;
+                min-height: 50px;
+                border-radius: 10px;
+            }
+
+            .permit-option .permit-info h4 {
+                font-size: 0.8rem;
+            }
+
+            .image-viewer-modal .modal-header {
+                padding: 0.6rem 1rem;
+            }
+
+            .image-viewer-modal .modal-header h3 {
+                font-size: 0.95rem;
+            }
+
+            .image-viewer-content {
+                padding: 1rem 1rem 5rem 1rem;
+            }
+
+            .image-controls {
+                padding: 0.5rem 1rem;
+                gap: 0.5rem;
+            }
+
+            .image-controls button {
+                padding: 0.4rem 0.9rem;
+                font-size: 0.75rem;
+            }
+
+            .editable-field {
+                font-size: 12px;
+                min-height: 24px;
+                min-width: 30px;
+                padding: 2px 4px;
+            }
+
+            .editable-field .delete-btn {
+                width: 16px;
+                height: 16px;
+                font-size: 8px;
+                top: -12px;
+                right: -12px;
+            }
+
+            .add-text-prompt {
+                font-size: 0.9rem;
+            }
+
+            .add-text-prompt i {
+                font-size: 2rem;
+            }
+
+            .success-modal {
+                padding: 1.8rem;
+                max-width: 380px;
+            }
+
+            .success-modal .success-icon {
+                font-size: 3rem;
+            }
+
+            .success-modal h3 {
+                font-size: 1.2rem;
+            }
+
+            .success-modal .btn-dashboard {
+                padding: 0.6rem 1.5rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .permit-form-container {
+                padding: 0.6rem;
+                border-radius: 12px;
+            }
+
+            .form-header {
+                gap: 0.3rem;
+                margin-bottom: 1rem;
+                padding-bottom: 0.6rem;
+            }
+
+            .form-header .back-btn {
+                font-size: 0.75rem;
+                padding: 0.3rem 0.6rem;
+            }
+
+            .form-header .back-btn i {
+                font-size: 0.8rem;
+            }
+
+            #permitTypeDisplay {
+                font-size: 0.8rem;
+            }
+
+            .permit-type-section {
+                margin-bottom: 1rem;
+            }
+
+            .permit-type-section h3 {
+                font-size: 0.85rem;
+            }
+
+            .permit-type-section p {
+                font-size: 0.7rem;
+                margin-bottom: 0.8rem;
+            }
+
+            .permit-grid {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+
+            .permit-option {
+                padding: 0.6rem 0.4rem;
+                min-height: 44px;
+                border-radius: 8px;
+                border-width: 1.5px;
+            }
+
+            .permit-option .permit-info h4 {
+                font-size: 0.75rem;
+            }
+
+            .image-viewer-modal .modal-header h3 {
+                font-size: 0.85rem;
+            }
+
+            .image-viewer-content {
+                padding: 0.5rem 0.5rem 4rem 0.5rem;
+            }
+
+            .image-controls button {
+                font-size: 0.65rem;
+                padding: 0.3rem 0.7rem;
+                border-radius: 6px;
+            }
+
+            .image-controls {
+                padding: 0.4rem 0.6rem;
+                gap: 0.4rem;
+            }
+
+            .editable-field {
+                font-size: 10px;
+                min-height: 20px;
+                min-width: 20px;
+                padding: 1px 3px;
+            }
+
+            .editable-field .delete-btn {
+                width: 14px;
+                height: 14px;
+                font-size: 7px;
+                top: -10px;
+                right: -10px;
+            }
+
+            .add-text-prompt {
+                font-size: 0.75rem;
+            }
+
+            .add-text-prompt i {
+                font-size: 1.5rem;
+            }
+
+            .success-modal {
+                padding: 1.2rem;
+                max-width: 320px;
+                border-radius: 18px;
+            }
+
+            .success-modal .success-icon {
+                font-size: 2.5rem;
+            }
+
+            .success-modal h3 {
+                font-size: 1rem;
+            }
+
+            .success-modal p {
+                font-size: 0.8rem;
+            }
+
+            .success-modal .btn-dashboard {
+                padding: 0.5rem 1.2rem;
+                font-size: 0.75rem;
+                border-radius: 6px;
+            }
+        }
+
+        /* Landscape phone fix */
+        @media (max-height: 600px) and (orientation: landscape) {
+            .permit-form-container {
+                padding: 0.5rem;
+            }
+
+            .form-header {
+                margin-bottom: 0.5rem;
+                padding-bottom: 0.4rem;
+            }
+
+            .permit-type-section {
+                margin-bottom: 0.5rem;
+            }
+
+            .permit-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.4rem;
+            }
+
+            .permit-option {
+                padding: 0.4rem 0.3rem;
+                min-height: 36px;
+            }
+
+            .permit-option .permit-info h4 {
+                font-size: 0.7rem;
+            }
+
+            .image-viewer-content {
+                padding: 0.3rem 0.3rem 3rem 0.3rem;
+            }
+
+            .image-controls {
+                padding: 0.3rem 0.5rem;
+                gap: 0.3rem;
+            }
+
+            .image-controls button {
+                padding: 0.2rem 0.5rem;
+                font-size: 0.6rem;
+            }
+        }
+
+        /* Prevent zoom on focus for iOS */
+        @supports (-webkit-touch-callout: none) {
+            input, select, textarea, .editable-field {
+                font-size: 16px !important;
+            }
+        }
+
+        /* Smooth transitions */
+        .page-content {
+            transition: opacity 0.2s ease;
+        }
+
+        .permit-option {
+            transition: all 0.2s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== DASHBOARD SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="logo-circle-small">
+                <img src="pagbilao logo.png" alt="MEO Pagbilao Logo" />
+            </div>
+            <span class="brand-name">MEO Pagbilao</span>
+        </div>
+        <nav class="sidebar-nav">
+            <ul>
+                <li data-page="dashboard">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </li>
+                <li data-page="file-permit" class="active">
+                    <i class="fas fa-file-circle-plus"></i>
+                    <span>File Permit</span>
+                </li>
+                <li data-page="my-applications">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>My Applications</span>
+                </li>
+                <li data-page="my-permits">
+                    <i class="fas fa-file-signature"></i>
+                    <span>My Permits</span>
+                </li>
+                <li data-page="notifications">
+                    <i class="fas fa-bell"></i>
+                    <span>Notifications</span>
+                    <span class="badge" id="notifBadge">0</span>
+                </li>
+                <li data-page="profile">
+                    <i class="fas fa-user-circle"></i>
+                    <span>My Profile</span>
+                </li>
+                <li data-page="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </li>
+            </ul>
+        </nav>
+        <div class="sidebar-footer">
+            <button id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="main-content">
+        <header class="top-header">
+            <div class="header-left">
+                <button id="toggleSidebar" class="menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h2 id="pageTitle">File Permit</h2>
+            </div>
+            <div class="header-right">
+                <span class="user-greeting" id="userGreeting">Welcome, User</span>
+                <div class="avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+            </div>
+        </header>
+
+        <section class="content-area">
+            <!-- ===== PERMIT FORM CONTENT ===== -->
+            <div id="page-permit-form" class="page-content active">
+                <div class="permit-form-container">
+                    <!-- Header -->
+                    <div class="form-header">
+                        <button class="back-btn" onclick="goBackToCategories()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <span style="margin-left:auto; font-weight:600; color:#b31b1b;" id="permitTypeDisplay">Building Permit</span>
+                    </div>
+
+                    <!-- Building Permits Section -->
+                    <div id="buildingPermitsSection" class="permit-type-section">
+                        <h3><i class="fas fa-building"></i> Building Permits</h3>
+                        <p>Select the specific building permit type you need:</p>
+                        <div class="permit-grid" id="buildingPermitsGrid">
+                            <div class="permit-option" data-type="architectural" onclick="handlePermitClick('Architectural Permit', this)">
+                                <div class="permit-info"><h4>Architectural Permit</h4></div>
+                            </div>
+                            <div class="permit-option" data-type="civil-structural" onclick="handlePermitClick('Civil/Structural Permit', this)">
+                                <div class="permit-info"><h4>Civil/Structural Permit</h4></div>
+                            </div>
+                            <div class="permit-option" data-type="demolition" onclick="handlePermitClick('Demolition Permit', this)">
+                                <div class="permit-info"><h4>Demolition Permit</h4></div>
+                            </div>
+                            <div class="permit-option" data-type="electrical" onclick="handlePermitClick('Electrical Permit', this)">
+                                <div class="permit-info"><h4>Electrical Permit</h4></div>
+                            </div>
+                            <div class="permit-option" data-type="excavation" onclick="handlePermitClick('Excavation Permit', this)">
+                                <div class="permit-info"><h4>Excavation Permit</h4></div>
+                            </div>
+                            <div class="permit-option" data-type="fencing" onclick="handlePermitClick('Fencing Permit', this)">
+                                <div class="permit-info"><h4>Fencing Permit</h4></div>
+                            </div>
+                            <div class="permit-option" data-type="mechanical" onclick="handlePermitClick('Mechanical Permit', this)">
+                                <div class="permit-info"><h4>Mechanical Permit</h4></div>
+                            </div>
+                            <div class="permit-option" data-type="temporary-service" onclick="handlePermitClick('Permit for Temporary Service Connection', this)">
+                                <div class="permit-info"><h4>Permit for Temporary Service Connection</h4></div>
+                            </div>
+                            <div class="permit-option" data-type="plumbing" onclick="handlePermitClick('Plumbing Permit', this)">
+                                <div class="permit-info"><h4>Plumbing Permit</h4></div>
+                            </div>
+                            <div class="permit-option" data-type="sanitary" onclick="handlePermitClick('Sanitary Permit', this)">
+                                <div class="permit-info"><h4>Sanitary Permit</h4></div>
+                            </div>
+                            <div class="permit-option" data-type="sign" onclick="handlePermitClick('Sign Permit', this)">
+                                <div class="permit-info"><h4>Sign Permit</h4></div>
+                            </div>
+                            <div class="permit-option" data-type="unified-building" onclick="handlePermitClick('Unified Building Permit Form', this)">
+                                <div class="permit-info"><h4>Unified Building Permit Form</h4></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Occupancy Permits Section -->
+                    <div id="occupancyPermitsSection" class="permit-type-section" style="display: none;">
+                        <h3><i class="fas fa-home"></i> Occupancy Permits</h3>
+                        <p>Select the specific occupancy permit type you need:</p>
+                        <div class="permit-grid" id="occupancyPermitsGrid">
+                            <div class="permit-option" data-type="cei" onclick="handlePermitClick('CEI Permit', this)">
+                                <div class="permit-info"><h4>CEI Permit</h4></div>
+                            </div>
+                            <div class="permit-option" data-type="construction-logbook" onclick="handlePermitClick('Construction Logbook Sheet', this)">
+                                <div class="permit-info"><h4>Construction Logbook Sheet</h4></div>
+                            </div>
+                            <div class="permit-option" data-type="certificate-occupancy" onclick="handlePermitClick('Certificate of Occupancy Unified', this)">
+                                <div class="permit-info"><h4>Certificate of Occupancy Unified</h4></div>
+                            </div>
+                            <div class="permit-option" data-type="certificate-completion" onclick="handlePermitClick('Certificate of Completion', this)">
+                                <div class="permit-info"><h4>Certificate of Completion</h4></div>
+                            </div>
+                            <div class="permit-option" data-type="certificate-completion-electrical" onclick="handlePermitClick('Certificate of Completion (Electrical Works)', this)">
+                                <div class="permit-info"><h4>Certificate of Completion (Electrical Works)</h4></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ===== FULL SCREEN IMAGE VIEWER ===== -->
+    <div class="image-viewer-overlay" id="imageViewer">
+        <div class="image-viewer-modal">
+            <div class="modal-header">
+                <h3 id="permitTitle">Permit Form</h3>
+                <button class="close-btn" onclick="closeImageViewer()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="image-viewer-content">
+                <div class="page-indicator" id="pageIndicator">Page 1 / 2</div>
+                <div class="page-dots" id="pageDots"></div>
+                <div class="image-container" id="imageContainer">
+                    <img id="permitImage" src="" alt="Permit Form" />
+                    <div class="editable-overlay" id="editableOverlay">
+                        <div class="add-text-prompt" id="addTextPrompt">
+                            <i class="fas fa-mouse-pointer"></i>
+                            Click anywhere on the form to add a field
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="image-controls">
+                <button class="front-btn" onclick="changePage(-1)" id="prevPageBtn">
+                    <i class="fas fa-arrow-left"></i> Prev
+                </button>
+                <button class="back-btn-img" onclick="changePage(1)" id="nextPageBtn">
+                    Next <i class="fas fa-arrow-right"></i>
+                </button>
+                <button class="save-btn" onclick="saveEdits()">
+                    <i class="fas fa-save"></i> Save
+                </button>
+                <button class="clear-btn" onclick="clearAllFields()">
+                    <i class="fas fa-trash"></i> Clear
+                </button>
+                <button class="submit-btn" onclick="submitPermit()">
+                    <i class="fas fa-paper-plane"></i> Submit
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SUCCESS OVERLAY ===== -->
+    <div class="success-overlay" id="successOverlay">
+        <div class="success-modal">
+            <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+            <h3>Application Submitted!</h3>
+            <p id="successMessage">Your permit application has been submitted successfully.</p>
+            <p style="font-size:0.85rem; color:#8a7a7a;" id="appIdDisplay"></p>
+            <button class="btn-dashboard" onclick="goToDashboard()">
+                <i class="fas fa-th-large"></i> Go to Dashboard
+            </button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            "use strict";
+
+            // ===== CHECK IF USER IS LOGGED IN =====
+            const userEmail = sessionStorage.getItem('userEmail');
+            if (!userEmail) {
+                alert('Please login first.');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // ============================================================
+            // FORMAT DATE & TIME FOR NOTIFICATIONS
+            // ============================================================
+            function formatDateTime(date) {
+                var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                var month = months[date.getMonth()];
+                var day = date.getDate();
+                var year = date.getFullYear();
+                var hours = date.getHours();
+                var minutes = String(date.getMinutes()).padStart(2, '0');
+                var ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12 || 12;
+                return month + ' ' + day + ', ' + year + ' · ' + hours + ':' + minutes + ' ' + ampm;
+            }
+
+            // ============================================================
+            // PERMIT IMAGES - UPDATE WITH YOUR PNG FILE PATHS
+            // ============================================================
+            const permitImages = {
+                'architectural': {
+                    pages: ['architectural (front).png', 'architectural (back).png'],
+                    name: 'Architectural Permit'
+                },
+                'civil-structural': {
+                    pages: ['civil-structural (front).png', 'civil-structural.png'],
+                    name: 'Civil/Structural Permit'
+                },
+                'demolition': {
+                    pages: ['demolition (front).png', 'demolition (back).png'],
+                    name: 'Demolition Permit'
+                },
+                'electrical': {
+                    pages: ['electrical (front).png', 'electrical.png'],
+                    name: 'Electrical Permit'
+                },
+                'excavation': {
+                    pages: ['excavation and gound (front).png', 'excavation and ground (back).png'],
+                    name: 'Excavation Permit'
+                },
+                'fencing': {
+                    pages: ['fencing (front).png', 'fencing (back).png'],
+                    name: 'Fencing Permit'
+                },
+                'mechanical': {
+                    pages: ['mechanical (front).png', 'mechanical (back).png'],
+                    name: 'Mechanical Permit'
+                },
+                'temporary-service': {
+                    pages: ['permit for temporary service connection (front).png', 'permit for temporary service connection (back).png'],
+                    name: 'Permit for Temporary Service Connection'
+                },
+                'plumbing': {
+                    pages: ['plumbing (front).png', 'plumbing (back).png'],
+                    name: 'Plumbing Permit'
+                },
+                'sanitary': {
+                    pages: ['sanitary (front).png', 'sanitary (back).png'],
+                    name: 'Sanitary Permit'
+                },
+                'sign': {
+                    pages: ['sign (front).png', 'sign (back).png'],
+                    name: 'Sign Permit'
+                },
+                'unified-building': {
+                    pages: ['permit-images/unified-building-front.png', 'permit-images/unified-building-back.png'],
+                    name: 'Unified Building Permit Form'
+                },
+                'cei': {
+                    pages: ['COE inspection.png'],
+                    name: 'CEI Permit'
+                },
+                'construction-logbook': {
+                    pages: ['contruction logbook sheet.png'],
+                    name: 'Construction Logbook Sheet'
+                },
+                'certificate-occupancy': {
+                    pages: ['permit-images/certificate-occupancy-front.png', 'permit-images/certificate-occupancy-back.png'],
+                    name: 'Certificate of Occupancy Unified'
+                },
+                'certificate-completion': {
+                    pages: ['certificate of completion (front).png', 'certificate of completion (back).png'],
+                    name: 'Certificate of Completion'
+                },
+                'certificate-completion-electrical': {
+                    pages: ['COE electrical works.png'],
+                    name: 'Certificate of Completion (Electrical Works)'
+                }
+            };
+
+            // ============================================================
+            // STATE
+            // ============================================================
+            let currentPermitType = '';
+            let currentPermitName = '';
+            let currentPage = 0;
+            let totalPages = 0;
+            let savedData = {};
+            let fieldCounter = 0;
+
+            // DOM Elements
+            const viewer = document.getElementById('imageViewer');
+            const overlay = document.getElementById('editableOverlay');
+            const img = document.getElementById('permitImage');
+            const title = document.getElementById('permitTitle');
+            const pageIndicator = document.getElementById('pageIndicator');
+            const pageDots = document.getElementById('pageDots');
+            const prevBtn = document.getElementById('prevPageBtn');
+            const nextBtn = document.getElementById('nextPageBtn');
+            const successOverlay = document.getElementById('successOverlay');
+
+            // ============================================================
+            // HANDLE PERMIT CLICK
+            // ============================================================
+            window.handlePermitClick = function(permitName, element) {
+                const permitType = element.dataset.type;
+                currentPermitType = permitType;
+                currentPermitName = permitName;
+                currentPage = 0;
+
+                sessionStorage.setItem('subPermitName', permitName);
+                sessionStorage.setItem('subPermitType', permitType);
+
+                element.style.transition = 'all 0.1s ease';
+                element.style.transform = 'scale(0.95)';
+                element.style.borderColor = '#b31b1b';
+                setTimeout(() => {
+                    element.style.transform = 'scale(1)';
+                    element.style.borderColor = '#f0e6e6';
+                }, 150);
+
+                openImageViewer(permitType, permitName);
+            };
+
+            // ============================================================
+            // OPEN IMAGE VIEWER
+            // ============================================================
+            function openImageViewer(permitType, permitName) {
+                const permitData = permitImages[permitType];
+                if (!permitData || !permitData.pages || permitData.pages.length === 0) {
+                    alert('No images configured for this permit type.');
+                    return;
+                }
+
+                title.textContent = permitName;
+                totalPages = permitData.pages.length;
+                currentPage = 0;
+
+                img.src = permitData.pages[0];
+                img.alt = permitName + ' - Page 1';
+
+                viewer.classList.add('active');
+                document.body.style.overflow = 'hidden';
+
+                updateNavigation();
+                loadSavedData(permitType);
+            }
+
+            // ============================================================
+            // CLOSE IMAGE VIEWER
+            // ============================================================
+            window.closeImageViewer = function() {
+                viewer.classList.remove('active');
+                document.body.style.overflow = 'auto';
+                overlay.innerHTML = '';
+                const promptDiv = document.createElement('div');
+                promptDiv.className = 'add-text-prompt';
+                promptDiv.id = 'addTextPrompt';
+                promptDiv.innerHTML = '<i class="fas fa-mouse-pointer"></i> Click anywhere on the form to add a field';
+                overlay.appendChild(promptDiv);
+            };
+
+            // ============================================================
+            // CHANGE PAGE
+            // ============================================================
+            window.changePage = function(direction) {
+                const permitData = permitImages[currentPermitType];
+                if (!permitData || !permitData.pages) return;
+
+                const newPage = currentPage + direction;
+                if (newPage >= 0 && newPage < permitData.pages.length) {
+                    saveEdits();
+                    currentPage = newPage;
+                    img.src = permitData.pages[currentPage];
+                    img.alt = currentPermitName + ' - Page ' + (currentPage + 1);
+                    updateNavigation();
+                    loadSavedData(currentPermitType);
+                }
+            };
+
+            // ============================================================
+            // UPDATE NAVIGATION
+            // ============================================================
+            function updateNavigation() {
+                pageIndicator.textContent = `Page ${currentPage + 1} / ${totalPages}`;
+                prevBtn.disabled = (currentPage === 0);
+                nextBtn.disabled = (currentPage === totalPages - 1);
+
+                let dotsHtml = '';
+                for (let i = 0; i < totalPages; i++) {
+                    dotsHtml += `<button class="page-dot ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})"></button>`;
+                }
+                pageDots.innerHTML = dotsHtml;
+            }
+
+            // ============================================================
+            // GO TO PAGE
+            // ============================================================
+            window.goToPage = function(pageIndex) {
+                const permitData = permitImages[currentPermitType];
+                if (!permitData || !permitData.pages) return;
+                if (pageIndex >= 0 && pageIndex < permitData.pages.length) {
+                    saveEdits();
+                    currentPage = pageIndex;
+                    img.src = permitData.pages[currentPage];
+                    img.alt = currentPermitName + ' - Page ' + (currentPage + 1);
+                    updateNavigation();
+                    loadSavedData(currentPermitType);
+                }
+            };
+
+            // ============================================================
+            // ADD FIELD - AUTOMATIC ON CLICK
+            // ============================================================
+            overlay.addEventListener('click', function(e) {
+                if (e.target.closest('.editable-field')) return;
+
+                const imgRect = img.getBoundingClientRect();
+                const imgX = e.clientX - imgRect.left;
+                const imgY = e.clientY - imgRect.top;
+
+                if (imgX >= 0 && imgX <= imgRect.width && imgY >= 0 && imgY <= imgRect.height) {
+                    const percentX = (imgX / imgRect.width) * 100;
+                    const percentY = (imgY / imgRect.height) * 100;
+                    createEditableField(percentX, percentY);
+
+                    const promptEl = document.getElementById('addTextPrompt');
+                    if (promptEl) promptEl.classList.add('hidden');
+                }
+            });
+
+            // ============================================================
+            // CREATE EDITABLE FIELD - Center-aligned
+            // ============================================================
+            function createEditableField(x, y, text = '') {
+                const div = document.createElement('div');
+                div.className = 'editable-field';
+                div.contentEditable = true;
+                div.style.left = x + '%';
+                div.style.top = y + '%';
+                div.textContent = text || '';
+                div.dataset.fieldId = 'field-' + (++fieldCounter);
+
+                // Delete button
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+                deleteBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    div.remove();
+                    saveEdits();
+                    if (document.querySelectorAll('.editable-field').length === 0) {
+                        const promptEl = document.getElementById('addTextPrompt');
+                        if (promptEl) promptEl.classList.remove('hidden');
+                    }
+                });
+                div.appendChild(deleteBtn);
+
+                // Auto-focus and select
+                div.addEventListener('focus', function() {
+                    const range = document.createRange();
+                    range.selectNodeContents(this);
+                    const sel = window.getSelection();
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                });
+
+                // Save on input
+                div.addEventListener('input', function() {
+                    saveEdits();
+                });
+
+                // Save on blur
+                div.addEventListener('blur', function() {
+                    saveEdits();
+                });
+
+                overlay.appendChild(div);
+
+                // Focus and select
+                setTimeout(() => {
+                    div.focus();
+                    const range = document.createRange();
+                    range.selectNodeContents(div);
+                    const sel = window.getSelection();
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                }, 100);
+
+                saveEdits();
+            }
+
+            // ============================================================
+            // SAVE AND LOAD DATA
+            // ============================================================
+            window.saveEdits = function() {
+                const fields = [];
+                document.querySelectorAll('.editable-field').forEach(el => {
+                    fields.push({
+                        x: parseFloat(el.style.left) || 0,
+                        y: parseFloat(el.style.top) || 0,
+                        text: el.textContent || '',
+                        width: el.offsetWidth || 40,
+                        height: el.offsetHeight || 24,
+                        page: currentPage
+                    });
+                });
+
+                const key = currentPermitType + '_page_' + currentPage;
+                if (!savedData[key]) savedData[key] = {};
+                savedData[key].fields = fields;
+
+                console.log('Saved data:', savedData);
+            };
+
+            function loadSavedData(permitType) {
+                const promptEl = document.getElementById('addTextPrompt');
+                overlay.innerHTML = '';
+                if (promptEl) {
+                    overlay.appendChild(promptEl);
+                }
+
+                const key = permitType + '_page_' + currentPage;
+                const data = savedData[key];
+
+                if (data && data.fields) {
+                    data.fields.forEach(fieldData => {
+                        const div = document.createElement('div');
+                        div.className = 'editable-field';
+                        div.contentEditable = true;
+                        div.style.left = fieldData.x + '%';
+                        div.style.top = fieldData.y + '%';
+                        if (fieldData.width) div.style.width = fieldData.width + 'px';
+                        if (fieldData.height) div.style.height = fieldData.height + 'px';
+                        div.textContent = fieldData.text || '';
+                        div.dataset.fieldId = 'field-' + (++fieldCounter);
+
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'delete-btn';
+                        deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+                        deleteBtn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            div.remove();
+                            saveEdits();
+                            if (document.querySelectorAll('.editable-field').length === 0) {
+                                const promptEl2 = document.getElementById('addTextPrompt');
+                                if (promptEl2) promptEl2.classList.remove('hidden');
+                            }
+                        });
+                        div.appendChild(deleteBtn);
+
+                        div.addEventListener('focus', function() {
+                            const range = document.createRange();
+                            range.selectNodeContents(this);
+                            const sel = window.getSelection();
+                            sel.removeAllRanges();
+                            sel.addRange(range);
+                        });
+
+                        div.addEventListener('input', function() {
+                            saveEdits();
+                        });
+
+                        div.addEventListener('blur', function() {
+                            saveEdits();
+                        });
+
+                        overlay.appendChild(div);
+                    });
+
+                    if (data.fields.length > 0) {
+                        const promptEl2 = document.getElementById('addTextPrompt');
+                        if (promptEl2) promptEl2.classList.add('hidden');
+                    }
+                }
+            }
+
+            // ============================================================
+            // CLEAR ALL FIELDS
+            // ============================================================
+            window.clearAllFields = function() {
+                if (!confirm('Clear all fields on this page?')) return;
+                document.querySelectorAll('.editable-field').forEach(el => el.remove());
+                const promptEl = document.getElementById('addTextPrompt');
+                if (promptEl) promptEl.classList.remove('hidden');
+                saveEdits();
+            };
+
+            // ============================================================
+            // SUBMIT PERMIT - FIXED with proper timestamp for notifications
+            // ============================================================
+            window.submitPermit = function() {
+                saveEdits();
+
+                // Collect all fields from all pages
+                let allFields = [];
+                for (let key in savedData) {
+                    if (savedData[key] && savedData[key].fields) {
+                        savedData[key].fields.forEach(f => {
+                            allFields.push(f);
+                        });
+                    }
+                }
+
+                const permitData = permitImages[currentPermitType];
+                const displayName = permitData ? permitData.name : currentPermitName;
+                const userName = sessionStorage.getItem('userName') || 'User';
+                const userEmail = sessionStorage.getItem('userEmail') || 'user@email.com';
+                const now = new Date();
+                const today = now.toISOString().split('T')[0];
+                const nowFormatted = formatDateTime(now);
+                const timestamp = now.toISOString();  // ← ADDED: Proper ISO timestamp
+
+                // Generate Application ID
+                const appId = 'APP-2026-' + String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+
+                // ============================================================
+                // 1. CREATE APPLICATION DATA
+                // ============================================================
+                const newApplication = {
+                    appId: appId,
+                    type: displayName,
+                    permitType: currentPermitType,
+                    dateFiled: today,
+                    status: 'Pending',
+                    applicant: userName,
+                    email: userEmail,
+                    description: allFields.map(f => f.text).join(', ') || 'No details provided',
+                    location: 'Pagbilao, Quezon',
+                    additionalInfo: 'Fields: ' + allFields.length,
+                    fields: allFields,
+                    totalPages: totalPages,
+                    timestamp: timestamp  // ← ADDED
+                };
+
+                // ============================================================
+                // 2. SAVE APPLICATION TO localStorage
+                // ============================================================
+                const applications = JSON.parse(localStorage.getItem('userApplications') || '[]');
+                applications.unshift(newApplication);
+                localStorage.setItem('userApplications', JSON.stringify(applications));
+
+                // ============================================================
+                // 3. CREATE PENDING PERMIT
+                // ============================================================
+                const pendingPermit = {
+                    permitNo: '⏳ Pending',
+                    type: displayName,
+                    dateIssued: '—',
+                    expiryDate: '—',
+                    status: 'Pending',
+                    applicant: userName,
+                    email: userEmail,
+                    appId: appId,
+                    isPending: true,
+                    archived: false,
+                    created: timestamp  // ← ADDED
+                };
+
+                const permits = JSON.parse(localStorage.getItem('userPermits') || '[]');
+                permits.unshift(pendingPermit);
+                localStorage.setItem('userPermits', JSON.stringify(permits));
+
+                console.log('✅ Application created:', newApplication);
+                console.log('✅ Pending permit created:', pendingPermit);
+                console.log('📋 Total permits now:', permits.length);
+
+                // ============================================================
+                // 4. ADD NOTIFICATION WITH PROPER TIMESTAMP - FIXED!
+                // ============================================================
+                const notifications = JSON.parse(localStorage.getItem('userNotifications') || '[]');
+                notifications.unshift({
+                    id: Date.now(),
+                    icon: 'blue',
+                    iconClass: 'fa-info-circle',
+                    message: 'You filed a new <strong>' + displayName + '</strong> application (' + appId + ')',
+                    time: nowFormatted,
+                    timestamp: timestamp,  // ← ADDED: This is the key fix!
+                    unread: true
+                });
+                localStorage.setItem('userNotifications', JSON.stringify(notifications));
+
+                // ============================================================
+                // 5. SHOW SUCCESS MODAL
+                // ============================================================
+                closeImageViewer();
+
+                document.getElementById('successMessage').textContent = 'Your ' + displayName + ' application has been submitted successfully.';
+                document.getElementById('appIdDisplay').textContent = 'Application ID: ' + appId + ' | Status: Pending';
+                successOverlay.classList.add('active');
+
+                console.log('✅ Application submitted:', appId);
+                console.log('📝 Fields saved:', allFields.length);
+                console.log('✅ Pending permit added to My Permits!');
+                console.log('🔔 Notification created with timestamp:', timestamp);
+
+                // Redirect after delay
+                setTimeout(function() {
+                    window.location.href = 'dashboard.html?success=submitted';
+                }, 3000);
+            };
+
+            // ============================================================
+            // GO TO DASHBOARD
+            // ============================================================
+            window.goToDashboard = function() {
+                successOverlay.classList.remove('active');
+                sessionStorage.removeItem('subPermitType');
+                sessionStorage.removeItem('subPermitName');
+                window.location.href = 'dashboard.html?success=submitted';
+            };
+
+            // ============================================================
+            // GO BACK TO CATEGORIES
+            // ============================================================
+            window.goBackToCategories = function() {
+                sessionStorage.removeItem('permitType');
+                sessionStorage.removeItem('permitName');
+                sessionStorage.removeItem('subPermitType');
+                sessionStorage.removeItem('subPermitName');
+                window.location.href = 'dashboard.html';
+            };
+
+            // ============================================================
+            // KEYBOARD NAVIGATION
+            // ============================================================
+            document.addEventListener('keydown', function(e) {
+                if (successOverlay.classList.contains('active')) {
+                    if (e.key === 'Enter' || e.key === 'Escape') {
+                        goToDashboard();
+                    }
+                    return;
+                }
+
+                if (!viewer.classList.contains('active')) {
+                    if (e.key === 'Escape') {
+                        goBackToCategories();
+                    }
+                    return;
+                }
+
+                if (e.key === 'Escape') {
+                    closeImageViewer();
+                } else if (e.key === 'ArrowLeft') {
+                    changePage(-1);
+                } else if (e.key === 'ArrowRight') {
+                    changePage(1);
+                }
+            });
+
+            // ============================================================
+            // SIDEBAR NAVIGATION
+            // ============================================================
+            const navItems = document.querySelectorAll('.sidebar-nav li');
+            navItems.forEach(function(item) {
+                item.addEventListener('click', function() {
+                    const page = this.dataset.page;
+                    if (page === 'file-permit') return;
+                    window.location.href = 'dashboard.html';
+                });
+            });
+
+            // ============================================================
+            // LOGOUT
+            // ============================================================
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    if (confirm('Are you sure you want to logout?')) {
+                        const activeUsers = JSON.parse(localStorage.getItem('activeUsers') || '[]');
+                        const updated = activeUsers.filter(function(u) { return u.email !== userEmail; });
+                        localStorage.setItem('activeUsers', JSON.stringify(updated));
+                        sessionStorage.clear();
+                        alert('Logging out...');
+                        window.location.href = 'index.html';
+                    }
+                });
+            }
+
+            // ============================================================
+            // TOGGLE SIDEBAR
+            // ============================================================
+            const toggleBtn = document.getElementById('toggleSidebar');
+            const sidebar = document.getElementById('sidebar');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    sidebar.classList.toggle('open');
+                });
+            }
+
+            // ============================================================
+            // USER GREETING
+            // ============================================================
+            const userGreeting = document.getElementById('userGreeting');
+            const userName = sessionStorage.getItem('userName') || 'User';
+            if (userGreeting) {
+                userGreeting.textContent = 'Welcome, ' + userName;
+            }
+
+            // ============================================================
+            // UPDATE NOTIFICATION BADGE
+            // ============================================================
+            const notifBadge = document.getElementById('notifBadge');
+            if (notifBadge) {
+                const notifications = JSON.parse(localStorage.getItem('userNotifications') || '[]');
+                const unreadCount = notifications.filter(function(n) { return n.unread; }).length;
+                notifBadge.textContent = unreadCount > 0 ? unreadCount : '0';
+            }
+
+            // ============================================================
+            // SETUP PAGE
+            // ============================================================
+            const mainPermitType = sessionStorage.getItem('permitType') || 'building';
+            const mainPermitName = sessionStorage.getItem('permitName') || 'Building Permit';
+            const buildingSection = document.getElementById('buildingPermitsSection');
+            const occupancySection = document.getElementById('occupancyPermitsSection');
+            const pageTitle = document.getElementById('pageTitle');
+            const permitTypeDisplay = document.getElementById('permitTypeDisplay');
+
+            pageTitle.textContent = 'File Permit - ' + mainPermitName;
+            if (permitTypeDisplay) {
+                permitTypeDisplay.textContent = mainPermitName;
+            }
+
+            if (mainPermitType === 'building') {
+                buildingSection.style.display = 'block';
+                occupancySection.style.display = 'none';
+            } else if (mainPermitType === 'occupancy') {
+                buildingSection.style.display = 'none';
+                occupancySection.style.display = 'block';
+            } else {
+                buildingSection.style.display = 'block';
+                occupancySection.style.display = 'none';
+            }
+
+            console.log('✅ Permit Form ready');
+            console.log('✅ Will create pending permit in userPermits on submit');
+            console.log('Data flow: Form → localStorage → My Permits (Pending) → Admin Review → My Permits (Active)');
+
+        })();
+    </script>
+</body>
+</html>

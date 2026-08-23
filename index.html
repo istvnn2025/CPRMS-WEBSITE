@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Pagbilao · Permit Login</title>
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: #f8f5f5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .login-wrapper {
+            max-width: 1100px;
+            width: 100%;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 20px 50px rgba(180, 20, 20, 0.15);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            border: 1px solid #f0e0e0;
+        }
+
+        /* ===== BRAND PANEL ===== */
+        .brand-panel {
+            background: #b31b1b;
+            padding: 2.5rem 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            color: white;
+            position: relative;
+            min-height: 320px;
+        }
+
+        .brand-panel::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: white;
+            opacity: 0.25;
+        }
+
+        .logo-area {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .logo-img {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 4px 12px 4px 4px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(2px);
+        }
+
+        .logo-img img {
+            width: 44px;
+            height: 44px;
+            object-fit: cover;
+            border-radius: 50%;
+            background: white;
+            padding: 2px;
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo-text {
+            font-weight: 600;
+            font-size: 1rem;
+            letter-spacing: -0.2px;
+            line-height: 1.2;
+        }
+
+        .logo-text small {
+            display: block;
+            font-weight: 300;
+            font-size: 0.6rem;
+            opacity: 0.75;
+            letter-spacing: 0.3px;
+        }
+
+        .brand-panel h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-top: 0.5rem;
+        }
+
+        .brand-panel h1 i {
+            color: #ffd966;
+            margin-right: 6px;
+        }
+
+        .brand-panel p {
+            margin-top: 0.6rem;
+            opacity: 0.85;
+            font-size: 0.9rem;
+            max-width: 280px;
+            border-left: 4px solid #ffd966;
+            padding-left: 0.8rem;
+        }
+
+        .brand-footer {
+            margin-top: 2rem;
+            font-size: 0.7rem;
+            opacity: 0.55;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .brand-footer i {
+            margin-right: 4px;
+        }
+
+        /* ===== FORM PANEL ===== */
+        .form-panel {
+            background: white;
+            padding: 2rem 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .toggle-tabs {
+            display: flex;
+            background: #f3ecec;
+            border-radius: 60px;
+            padding: 4px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #eedcdc;
+            gap: 4px;
+        }
+
+        .toggle-tabs button {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 0.5rem 0.2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #5f3e3e;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .toggle-tabs button.active {
+            background: #b31b1b;
+            color: white;
+            box-shadow: 0 4px 12px rgba(179, 27, 27, 0.25);
+        }
+
+        .toggle-tabs button i {
+            font-size: 0.85rem;
+        }
+
+        .login-box {
+            display: block;
+        }
+
+        .login-box.hidden {
+            display: none;
+        }
+
+        .login-box h2 {
+            font-size: 1.3rem;
+            color: #2d1c1c;
+            margin-bottom: 0.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .login-box h2 i {
+            color: #b31b1b;
+        }
+
+        .login-box .sub {
+            color: #755a5a;
+            font-size: 0.85rem;
+            margin-bottom: 1.2rem;
+            border-left: 3px solid #b31b1b;
+            padding-left: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #3d2626;
+            margin-bottom: 4px;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group label i {
+            color: #b31b1b;
+            width: 20px;
+            font-size: 0.8rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 1.5px solid #e6d6d6;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            background: #fefcfc;
+            transition: 0.2s;
+            padding-right: 42px;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #b31b1b;
+            box-shadow: 0 0 0 4px rgba(179, 27, 27, 0.08);
+            background: white;
+        }
+
+        .form-control::placeholder {
+            color: #bbaaaa;
+            font-size: 0.85rem;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 14px;
+            bottom: 10px;
+            background: none;
+            border: none;
+            color: #755a5a;
+            cursor: pointer;
+            font-size: 0.95rem;
+            padding: 4px;
+        }
+
+        .btn-login {
+            background: #b31b1b;
+            border: none;
+            color: white;
+            padding: 0.8rem;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            width: 100%;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 0.3rem;
+            box-shadow: 0 6px 16px rgba(179, 27, 27, 0.2);
+        }
+
+        .btn-login:hover {
+            background: #9e1616;
+            transform: scale(1.01);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .login-error,
+        .login-success {
+            font-size: 0.78rem;
+            margin-top: 0.4rem;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            padding: 0.3rem 0.5rem;
+            border-radius: 8px;
+        }
+
+        .login-error {
+            color: #b31b1b;
+            background: #fce8e6;
+        }
+
+        .login-success {
+            color: #1a7a3a;
+            background: #e6f7e6;
+        }
+
+        .login-error.show,
+        .login-success.show {
+            display: flex;
+        }
+
+        .info-message {
+            margin-top: 1.2rem;
+            font-size: 0.8rem;
+            color: #755a5a;
+            text-align: center;
+        }
+
+        .info-message i {
+            color: #b31b1b;
+        }
+
+        .switch-link {
+            color: #b31b1b;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .switch-link:hover {
+            text-decoration: underline;
+        }
+
+        .account-note {
+            background: #fff5f5;
+            border: 1px solid #f0dada;
+            border-radius: 12px;
+            padding: 8px 12px;
+            margin-bottom: 1rem;
+            font-size: 0.75rem;
+            color: #755a5a;
+        }
+
+        .account-note i {
+            color: #b31b1b;
+            margin-right: 5px;
+        }
+
+        /* ============================================================
+           RESPONSIVE - MOBILE VIEW
+           ============================================================ */
+
+        @media (max-width: 850px) {
+            .login-wrapper {
+                grid-template-columns: 1fr;
+                border-radius: 24px;
+                max-width: 480px;
+            }
+
+            .brand-panel {
+                padding: 1.8rem 1.5rem;
+                border-radius: 24px 24px 0 0;
+                min-height: auto;
+            }
+
+            .brand-panel h1 {
+                font-size: 1.3rem;
+            }
+
+            .brand-panel p {
+                font-size: 0.8rem;
+                max-width: 100%;
+            }
+
+            .brand-footer {
+                margin-top: 1.2rem;
+                font-size: 0.65rem;
+                gap: 10px;
+            }
+
+            .form-panel {
+                padding: 1.5rem 1.2rem;
+            }
+
+            .logo-img {
+                padding: 3px 10px 3px 3px;
+            }
+
+            .logo-img img {
+                width: 38px;
+                height: 38px;
+            }
+
+            .logo-text {
+                font-size: 0.85rem;
+            }
+
+            .toggle-tabs button {
+                font-size: 0.75rem;
+                padding: 0.4rem 0.1rem;
+            }
+
+            .login-box h2 {
+                font-size: 1.1rem;
+            }
+
+            .login-box .sub {
+                font-size: 0.75rem;
+                margin-bottom: 1rem;
+            }
+
+            .form-control {
+                padding: 0.6rem 0.9rem;
+                font-size: 0.85rem;
+                border-radius: 14px;
+            }
+
+            .btn-login {
+                padding: 0.7rem;
+                font-size: 0.85rem;
+            }
+
+            .info-message {
+                font-size: 0.75rem;
+                margin-top: 1rem;
+            }
+
+            .account-note {
+                font-size: 0.7rem;
+                padding: 6px 10px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            body {
+                padding: 0.5rem;
+            }
+
+            .login-wrapper {
+                border-radius: 18px;
+            }
+
+            .brand-panel {
+                padding: 1.2rem 1rem;
+                border-radius: 18px 18px 0 0;
+            }
+
+            .brand-panel h1 {
+                font-size: 1.1rem;
+            }
+
+            .brand-panel p {
+                font-size: 0.7rem;
+                padding-left: 0.6rem;
+            }
+
+            .brand-footer {
+                font-size: 0.55rem;
+                gap: 8px;
+            }
+
+            .form-panel {
+                padding: 1rem 0.8rem;
+            }
+
+            .toggle-tabs {
+                border-radius: 40px;
+                padding: 3px;
+            }
+
+            .toggle-tabs button {
+                font-size: 0.65rem;
+                padding: 0.35rem 0.1rem;
+                gap: 4px;
+            }
+
+            .toggle-tabs button i {
+                font-size: 0.7rem;
+            }
+
+            .login-box h2 {
+                font-size: 0.95rem;
+            }
+
+            .login-box .sub {
+                font-size: 0.65rem;
+                padding-left: 8px;
+                margin-bottom: 0.8rem;
+            }
+
+            .form-group {
+                margin-bottom: 0.7rem;
+            }
+
+            .form-group label {
+                font-size: 0.65rem;
+            }
+
+            .form-group label i {
+                font-size: 0.7rem;
+                width: 16px;
+            }
+
+            .form-control {
+                padding: 0.5rem 0.8rem;
+                font-size: 0.8rem;
+                border-radius: 12px;
+                padding-right: 36px;
+            }
+
+            .form-control::placeholder {
+                font-size: 0.75rem;
+            }
+
+            .toggle-password {
+                bottom: 8px;
+                right: 10px;
+                font-size: 0.8rem;
+            }
+
+            .btn-login {
+                padding: 0.6rem;
+                font-size: 0.8rem;
+                border-radius: 30px;
+                gap: 8px;
+            }
+
+            .btn-login i {
+                font-size: 0.8rem;
+            }
+
+            .info-message {
+                font-size: 0.7rem;
+                margin-top: 0.8rem;
+            }
+
+            .account-note {
+                font-size: 0.6rem;
+                padding: 5px 8px;
+                margin-bottom: 0.7rem;
+                border-radius: 10px;
+            }
+
+            .login-error,
+            .login-success {
+                font-size: 0.7rem;
+                padding: 0.2rem 0.4rem;
+                border-radius: 6px;
+            }
+
+            .logo-img {
+                padding: 2px 8px 2px 2px;
+                border-radius: 12px;
+            }
+
+            .logo-img img {
+                width: 32px;
+                height: 32px;
+            }
+
+            .logo-text {
+                font-size: 0.75rem;
+            }
+
+            .logo-text small {
+                font-size: 0.5rem;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .brand-panel h1 {
+                font-size: 0.95rem;
+            }
+
+            .form-panel {
+                padding: 0.8rem 0.6rem;
+            }
+
+            .toggle-tabs button {
+                font-size: 0.55rem;
+                padding: 0.3rem 0.05rem;
+            }
+
+            .login-box h2 {
+                font-size: 0.85rem;
+            }
+
+            .form-control {
+                font-size: 0.75rem;
+                padding: 0.4rem 0.6rem;
+            }
+
+            .btn-login {
+                font-size: 0.75rem;
+                padding: 0.5rem;
+            }
+        }
+
+        /* Landscape phone fix */
+        @media (max-height: 600px) and (orientation: landscape) {
+            .brand-panel {
+                padding: 1rem;
+                min-height: auto;
+            }
+
+            .brand-panel h1 {
+                font-size: 1rem;
+            }
+
+            .brand-panel p {
+                font-size: 0.7rem;
+                margin-top: 0.3rem;
+            }
+
+            .brand-footer {
+                margin-top: 0.8rem;
+            }
+
+            .form-panel {
+                padding: 0.8rem 1rem;
+            }
+
+            .login-box h2 {
+                font-size: 0.95rem;
+            }
+
+            .form-group {
+                margin-bottom: 0.5rem;
+            }
+
+            .btn-login {
+                padding: 0.5rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Prevent zoom on focus for iOS */
+        @supports (-webkit-touch-callout: none) {
+            .form-control {
+                font-size: 16px !important;
+            }
+        }
+
+        /* Smooth transitions */
+        .login-box {
+            transition: opacity 0.2s ease;
+        }
+
+        .login-box.hidden {
+            opacity: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="login-wrapper">
+
+    <!-- LEFT PANEL -->
+    <div class="brand-panel">
+
+        <div class="logo-area">
+            <div class="logo-img">
+                <img
+                    src="pagbilao logo.png"
+                    alt="Pagbilao Logo"
+                    onerror="this.style.display='none';"
+                />
+
+                <span class="logo-text">
+                    MEO Pagbilao
+                    <small>engineering office</small>
+                </span>
+            </div>
+        </div>
+
+        <h1>
+            <i class="fas fa-file-signature"></i>
+            Centralized Permit Record Management System
+        </h1>
+
+        <p>
+            Municipal Engineering Office · Pagbilao, Quezon
+        </p>
+
+        <div class="brand-footer">
+            <span>
+                <i class="fas fa-shield-alt"></i>
+                secure · LGU
+            </span>
+
+            <span>
+                <i class="fas fa-clock"></i>
+                24/7 filing
+            </span>
+        </div>
+
+    </div>
+
+
+    <!-- RIGHT PANEL -->
+    <div class="form-panel">
+
+        <!-- USER / ADMIN TABS -->
+        <div class="toggle-tabs">
+
+            <button id="userTabBtn" class="active">
+                <i class="fas fa-user"></i>
+                User
+            </button>
+
+            <button id="adminTabBtn">
+                <i class="fas fa-user-tie"></i>
+                Admin
+            </button>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- USER LOGIN -->
+        <!-- ===================================================== -->
+
+        <div id="userLoginBox" class="login-box">
+
+            <h2>
+                <i class="fas fa-user-circle"></i>
+                User Login
+            </h2>
+
+            <div class="sub">
+                Log in using your registered account
+            </div>
+
+            <div class="account-note">
+                <i class="fas fa-info-circle"></i>
+                New users must create an account before logging in.
+            </div>
+
+            <form id="userForm" novalidate>
+
+                <div class="form-group">
+
+                    <label for="userEmail">
+                        <i class="fas fa-envelope"></i>
+                        Email address
+                    </label>
+
+                    <input
+                        type="email"
+                        id="userEmail"
+                        class="form-control"
+                        placeholder="Enter your email"
+                        required
+                        autocomplete="email"
+                    />
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="userPassword">
+                        <i class="fas fa-lock"></i>
+                        Password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="userPassword"
+                        class="form-control"
+                        placeholder="Enter your password"
+                        required
+                        autocomplete="current-password"
+                    />
+
+                    <button
+                        type="button"
+                        class="toggle-password"
+                        onclick="togglePassword('userPassword')"
+                        aria-label="Toggle password visibility"
+                    >
+                        <i class="fas fa-eye"></i>
+                    </button>
+
+                </div>
+
+
+                <div id="userError" class="login-error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span></span>
+                </div>
+
+
+                <div id="userSuccess" class="login-success">
+                    <i class="fas fa-check-circle"></i>
+                    <span></span>
+                </div>
+
+
+                <button type="submit" class="btn-login">
+                    <i class="fas fa-right-to-bracket"></i>
+                    Log in
+                </button>
+
+            </form>
+
+
+            <div class="info-message">
+
+                Don't have an account?
+
+                <span
+                    class="switch-link"
+                    id="showCreateAccount"
+                >
+                    Create Account
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- CREATE ACCOUNT -->
+        <!-- ===================================================== -->
+
+        <div id="createAccountBox" class="login-box hidden">
+
+            <h2>
+                <i class="fas fa-user-plus"></i>
+                Create Account
+            </h2>
+
+            <div class="sub">
+                Create your account before logging in
+            </div>
+
+
+            <form id="createAccountForm" novalidate>
+
+                <div class="form-group">
+
+                    <label for="registerName">
+                        <i class="fas fa-user"></i>
+                        Full name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="registerName"
+                        class="form-control"
+                        placeholder="Enter your full name"
+                        required
+                        autocomplete="name"
+                    />
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="registerEmail">
+                        <i class="fas fa-envelope"></i>
+                        Email address
+                    </label>
+
+                    <input
+                        type="email"
+                        id="registerEmail"
+                        class="form-control"
+                        placeholder="Enter your email"
+                        required
+                        autocomplete="email"
+                    />
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="registerPassword">
+                        <i class="fas fa-lock"></i>
+                        Password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="registerPassword"
+                        class="form-control"
+                        placeholder="Create a password (min 6 chars)"
+                        required
+                        autocomplete="new-password"
+                    />
+
+                    <button
+                        type="button"
+                        class="toggle-password"
+                        onclick="togglePassword('registerPassword')"
+                        aria-label="Toggle password visibility"
+                    >
+                        <i class="fas fa-eye"></i>
+                    </button>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="confirmPassword">
+                        <i class="fas fa-lock"></i>
+                        Confirm password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="confirmPassword"
+                        class="form-control"
+                        placeholder="Confirm your password"
+                        required
+                        autocomplete="new-password"
+                    />
+
+                    <button
+                        type="button"
+                        class="toggle-password"
+                        onclick="togglePassword('confirmPassword')"
+                        aria-label="Toggle password visibility"
+                    >
+                        <i class="fas fa-eye"></i>
+                    </button>
+
+                </div>
+
+
+                <div id="registerError" class="login-error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span></span>
+                </div>
+
+
+                <div id="registerSuccess" class="login-success">
+                    <i class="fas fa-check-circle"></i>
+                    <span></span>
+                </div>
+
+
+                <button type="submit" class="btn-login">
+                    <i class="fas fa-user-plus"></i>
+                    Create Account
+                </button>
+
+            </form>
+
+
+            <div class="info-message">
+
+                Already have an account?
+
+                <span
+                    class="switch-link"
+                    id="showLogin"
+                >
+                    Log in
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- ADMIN LOGIN -->
+        <!-- ===================================================== -->
+
+        <div id="adminLoginBox" class="login-box hidden">
+
+            <h2>
+                <i class="fas fa-user-shield"></i>
+                Admin Access
+            </h2>
+
+            <div class="sub">
+                Restricted · enter admin credentials
+            </div>
+
+
+            <form id="adminForm" novalidate>
+
+                <div class="form-group">
+
+                    <label for="adminEmail">
+                        <i class="fas fa-envelope"></i>
+                        Admin email
+                    </label>
+
+                    <input
+                        type="email"
+                        id="adminEmail"
+                        class="form-control"
+                        placeholder="Enter admin email"
+                        required
+                        autocomplete="email"
+                    />
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="adminPassword">
+                        <i class="fas fa-lock"></i>
+                        Admin password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="adminPassword"
+                        class="form-control"
+                        placeholder="Enter admin password"
+                        required
+                        autocomplete="current-password"
+                    />
+
+                    <button
+                        type="button"
+                        class="toggle-password"
+                        onclick="togglePassword('adminPassword')"
+                        aria-label="Toggle password visibility"
+                    >
+                        <i class="fas fa-eye"></i>
+                    </button>
+
+                </div>
+
+
+                <div id="adminError" class="login-error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span></span>
+                </div>
+
+
+                <div id="adminSuccess" class="login-success">
+                    <i class="fas fa-check-circle"></i>
+                    <span></span>
+                </div>
+
+
+                <button type="submit" class="btn-login">
+                    <i class="fas fa-key"></i>
+                    Admin Login
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+
+    // ============================================================
+    // PASSWORD SHOW / HIDE
+    // ============================================================
+
+    function togglePassword(fieldId) {
+
+        var input = document.getElementById(fieldId);
+        var button = input.nextElementSibling;
+
+        if (input.type === "password") {
+
+            input.type = "text";
+
+            button.innerHTML =
+                '<i class="fas fa-eye-slash"></i>';
+
+        } else {
+
+            input.type = "password";
+
+            button.innerHTML =
+                '<i class="fas fa-eye"></i>';
+        }
+    }
+
+
+    // ============================================================
+    // ELEMENTS
+    // ============================================================
+
+    var userTab = document.getElementById("userTabBtn");
+    var adminTab = document.getElementById("adminTabBtn");
+
+    var userBox = document.getElementById("userLoginBox");
+    var createBox = document.getElementById("createAccountBox");
+    var adminBox = document.getElementById("adminLoginBox");
+
+    var showCreateAccount =
+        document.getElementById("showCreateAccount");
+
+    var showLogin =
+        document.getElementById("showLogin");
+
+
+    // ============================================================
+    // SHOW USER LOGIN
+    // ============================================================
+
+    function showUserLogin() {
+
+        userBox.classList.remove("hidden");
+        createBox.classList.add("hidden");
+        adminBox.classList.add("hidden");
+
+        userTab.classList.add("active");
+        adminTab.classList.remove("active");
+    }
+
+
+    // ============================================================
+    // SHOW CREATE ACCOUNT
+    // ============================================================
+
+    function showCreateAccountPage() {
+
+        userBox.classList.add("hidden");
+        createBox.classList.remove("hidden");
+        adminBox.classList.add("hidden");
+
+        userTab.classList.add("active");
+        adminTab.classList.remove("active");
+    }
+
+
+    // ============================================================
+    // SHOW ADMIN
+    // ============================================================
+
+    function showAdminLogin() {
+
+        userBox.classList.add("hidden");
+        createBox.classList.add("hidden");
+        adminBox.classList.remove("hidden");
+
+        adminTab.classList.add("active");
+        userTab.classList.remove("active");
+    }
+
+
+    showCreateAccount.addEventListener(
+        "click",
+        showCreateAccountPage
+    );
+
+    showLogin.addEventListener(
+        "click",
+        showUserLogin
+    );
+
+    userTab.addEventListener(
+        "click",
+        showUserLogin
+    );
+
+    adminTab.addEventListener(
+        "click",
+        showAdminLogin
+    );
+
+
+    // ============================================================
+    // CREATE USER ACCOUNT
+    // ============================================================
+
+    document
+        .getElementById("createAccountForm")
+        .addEventListener("submit", function(e) {
+
+            e.preventDefault();
+
+            var name =
+                document.getElementById("registerName")
+                    .value.trim();
+
+            var email =
+                document.getElementById("registerEmail")
+                    .value.trim();
+
+            var password =
+                document.getElementById("registerPassword")
+                    .value;
+
+            var confirmPassword =
+                document.getElementById("confirmPassword")
+                    .value;
+
+
+            var error =
+                document.getElementById("registerError");
+
+            var success =
+                document.getElementById("registerSuccess");
+
+
+            error.classList.remove("show");
+            success.classList.remove("show");
+
+
+            // CHECK EMPTY FIELDS
+
+            if (!name || !email || !password || !confirmPassword) {
+
+                error.querySelector("span").textContent =
+                    "Please complete all fields.";
+
+                error.classList.add("show");
+
+                return;
+            }
+
+
+            // CHECK EMAIL
+
+            if (!email.includes("@")) {
+
+                error.querySelector("span").textContent =
+                    "Please enter a valid email address.";
+
+                error.classList.add("show");
+
+                return;
+            }
+
+
+            // CHECK PASSWORD LENGTH
+
+            if (password.length < 6) {
+
+                error.querySelector("span").textContent =
+                    "Password must be at least 6 characters.";
+
+                error.classList.add("show");
+
+                return;
+            }
+
+
+            // CHECK PASSWORD MATCH
+
+            if (password !== confirmPassword) {
+
+                error.querySelector("span").textContent =
+                    "Passwords do not match.";
+
+                error.classList.add("show");
+
+                return;
+            }
+
+
+            // CHECK IF ACCOUNT ALREADY EXISTS
+
+            var existingAccount =
+                localStorage.getItem("cprmsUser");
+
+            if (existingAccount) {
+
+                var account =
+                    JSON.parse(existingAccount);
+
+                if (account.email === email) {
+
+                    error.querySelector("span").textContent =
+                        "An account with this email already exists.";
+
+                    error.classList.add("show");
+
+                    return;
+                }
+            }
+
+
+            // SAVE ACCOUNT
+
+            var userAccount = {
+
+                name: name,
+                email: email,
+                password: password
+
+            };
+
+
+            localStorage.setItem(
+                "cprmsUser",
+                JSON.stringify(userAccount)
+            );
+
+
+            // SUCCESS
+
+            success.querySelector("span").textContent =
+                "Account created successfully! Please log in.";
+
+            success.classList.add("show");
+
+
+            // CLEAR FORM
+
+            document.getElementById(
+                "createAccountForm"
+            ).reset();
+
+
+            // GO BACK TO LOGIN
+
+            setTimeout(function() {
+
+                showUserLogin();
+
+                document.getElementById(
+                    "userEmail"
+                ).value = email;
+
+            }, 1500);
+
+        });
+
+
+    // ============================================================
+    // USER LOGIN
+    // ============================================================
+
+    document
+        .getElementById("userForm")
+        .addEventListener("submit", function(e) {
+
+            e.preventDefault();
+
+
+            var email =
+                document.getElementById("userEmail")
+                    .value.trim();
+
+            var password =
+                document.getElementById("userPassword")
+                    .value;
+
+
+            var error =
+                document.getElementById("userError");
+
+            var success =
+                document.getElementById("userSuccess");
+
+
+            error.classList.remove("show");
+            success.classList.remove("show");
+
+
+            // CHECK EMPTY
+
+            if (!email || !password) {
+
+                error.querySelector("span").textContent =
+                    "Please enter your email and password.";
+
+                error.classList.add("show");
+
+                return;
+            }
+
+
+            // GET REGISTERED ACCOUNT
+
+            var savedAccount =
+                localStorage.getItem("cprmsUser");
+
+
+            // NO ACCOUNT
+
+            if (!savedAccount) {
+
+                error.querySelector("span").textContent =
+                    "No account found. Please create an account first.";
+
+                error.classList.add("show");
+
+                return;
+            }
+
+
+            var account =
+                JSON.parse(savedAccount);
+
+
+            // CHECK ACCOUNT
+
+            if (
+                email !== account.email ||
+                password !== account.password
+            ) {
+
+                error.querySelector("span").textContent =
+                    "Incorrect email or password.";
+
+                error.classList.add("show");
+
+                return;
+            }
+
+
+            // LOGIN SUCCESS
+
+            sessionStorage.clear();
+
+            sessionStorage.setItem(
+                "userLoggedIn",
+                "true"
+            );
+
+            sessionStorage.setItem(
+                "userEmail",
+                account.email
+            );
+
+            sessionStorage.setItem(
+                "userName",
+                account.name
+            );
+
+            sessionStorage.setItem(
+                "userType",
+                "user"
+            );
+
+
+            success.querySelector("span").textContent =
+                "Login successful! Redirecting...";
+
+            success.classList.add("show");
+
+
+            var submitBtn =
+                this.querySelector(
+                    'button[type="submit"]'
+                );
+
+            submitBtn.disabled = true;
+
+            submitBtn.innerHTML =
+                '<i class="fas fa-spinner fa-spin"></i> Redirecting...';
+
+
+            setTimeout(function() {
+
+                window.location.href =
+                    "dashboard.html";
+
+            }, 1500);
+
+        });
+
+
+    // ============================================================
+    // ADMIN LOGIN
+    // ============================================================
+
+    document
+        .getElementById("adminForm")
+        .addEventListener("submit", function(e) {
+
+            e.preventDefault();
+
+
+            var email =
+                document.getElementById("adminEmail")
+                    .value.trim();
+
+            var password =
+                document.getElementById("adminPassword")
+                    .value;
+
+
+            var error =
+                document.getElementById("adminError");
+
+            var success =
+                document.getElementById("adminSuccess");
+
+
+            error.classList.remove("show");
+            success.classList.remove("show");
+
+
+            if (!email || !password) {
+
+                error.querySelector("span").textContent =
+                    "Please enter both email and password.";
+
+                error.classList.add("show");
+
+                return;
+            }
+
+
+            // ADMIN CREDENTIALS
+
+            if (
+                email === "admin@gmail.com" &&
+                password === "admin123"
+            ) {
+
+                sessionStorage.clear();
+
+                sessionStorage.setItem(
+                    "adminLoggedIn",
+                    "true"
+                );
+
+                sessionStorage.setItem(
+                    "adminEmail",
+                    email
+                );
+
+                sessionStorage.setItem(
+                    "userType",
+                    "admin"
+                );
+
+
+                success.querySelector("span").textContent =
+                    "Login successful! Redirecting...";
+
+                success.classList.add("show");
+
+
+                var submitBtn =
+                    this.querySelector(
+                        'button[type="submit"]'
+                    );
+
+                submitBtn.disabled = true;
+
+                submitBtn.innerHTML =
+                    '<i class="fas fa-spinner fa-spin"></i> Redirecting...';
+
+
+                setTimeout(function() {
+
+                    window.location.href =
+                        "adminDashboard.html";
+
+                }, 1500);
+
+
+            } else {
+
+                error.querySelector("span").textContent =
+                    "Invalid admin credentials. Please try again.";
+
+                error.classList.add("show");
+
+                document.getElementById(
+                    "adminPassword"
+                ).value = "";
+
+            }
+
+        });
+
+
+    // ============================================================
+    // SESSION CHECK
+    // ============================================================
+
+    var isAdminLoggedIn =
+        sessionStorage.getItem("adminLoggedIn") === "true";
+
+    var isUserLoggedIn =
+        sessionStorage.getItem("userLoggedIn") === "true";
+
+
+    if (isAdminLoggedIn) {
+
+        window.location.href =
+            "adminDashboard.html";
+
+    } else if (isUserLoggedIn) {
+
+        window.location.href =
+            "dashboard.html";
+    }
+
+
+    // ============================================================
+    // ENTER KEY SUPPORT
+    // ============================================================
+
+    document
+        .querySelectorAll("input")
+        .forEach(function(input) {
+
+            input.addEventListener(
+                "keypress",
+                function(e) {
+
+                    if (e.key === "Enter") {
+
+                        e.preventDefault();
+
+                        var form =
+                            this.closest("form");
+
+                        if (form) {
+
+                            form.querySelector(
+                                'button[type="submit"]'
+                            ).click();
+
+                        }
+
+                    }
+
+                }
+            );
+
+        });
+
+
+    console.log(
+        "CPRMS Login System Ready"
+    );
+
+</script>
+
+</body>
+</html>
