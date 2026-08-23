@@ -848,7 +848,7 @@
 
 
         <!-- ===================================================== -->
-        <!-- CREATE ACCOUNT - UPDATED WITH SUPABASE -->
+        <!-- CREATE ACCOUNT -->
         <!-- ===================================================== -->
 
         <div id="createAccountBox" class="login-box hidden">
@@ -1141,7 +1141,7 @@
         return data;
     }
 
-    console.log('✅ Supabase functions ready (direct)');
+    console.log('✅ Supabase functions ready');
 
 
     // ============================================================
@@ -1223,7 +1223,7 @@
 
 
     // ============================================================
-    // CREATE USER ACCOUNT - UPDATED WITH SUPABASE
+    // CREATE USER ACCOUNT
     // ============================================================
 
     document.getElementById("createAccountForm").addEventListener("submit", async function(e) {
@@ -1240,28 +1240,24 @@
         error.classList.remove("show");
         success.classList.remove("show");
 
-        // CHECK EMPTY FIELDS
         if (!name || !email || !password || !confirmPassword) {
             error.querySelector("span").textContent = "Please complete all fields.";
             error.classList.add("show");
             return;
         }
 
-        // CHECK EMAIL
         if (!email.includes("@")) {
             error.querySelector("span").textContent = "Please enter a valid email address.";
             error.classList.add("show");
             return;
         }
 
-        // CHECK PASSWORD LENGTH
         if (password.length < 6) {
             error.querySelector("span").textContent = "Password must be at least 6 characters.";
             error.classList.add("show");
             return;
         }
 
-        // CHECK PASSWORD MATCH
         if (password !== confirmPassword) {
             error.querySelector("span").textContent = "Passwords do not match.";
             error.classList.add("show");
@@ -1269,7 +1265,6 @@
         }
 
         try {
-            // ===== CHECK IF USER EXISTS IN SUPABASE =====
             var existingUser = await getUserByEmail(email);
 
             if (existingUser) {
@@ -1278,7 +1273,6 @@
                 return;
             }
 
-            // ===== CREATE USER IN SUPABASE =====
             await createUser({
                 email: email,
                 name: name,
@@ -1286,7 +1280,6 @@
                 user_type: 'user'
             });
 
-            // ===== CREATE PROFILE IN SUPABASE =====
             await createProfile({
                 email: email,
                 name: name,
@@ -1294,14 +1287,11 @@
                 member_since: new Date().toISOString()
             });
 
-            // SUCCESS
             success.querySelector("span").textContent = "Account created successfully! Please log in.";
             success.classList.add("show");
 
-            // CLEAR FORM
             document.getElementById("createAccountForm").reset();
 
-            // GO BACK TO LOGIN
             setTimeout(function() {
                 showUserLogin();
                 document.getElementById("userEmail").value = email;
@@ -1316,11 +1306,13 @@
 
 
     // ============================================================
-    // USER LOGIN - UPDATED WITH SUPABASE
+    // USER LOGIN - FIXED: Added console logs for debugging
     // ============================================================
 
     document.getElementById("userForm").addEventListener("submit", async function(e) {
         e.preventDefault();
+
+        console.log('🔵 Login button clicked!');
 
         var email = document.getElementById("userEmail").value.trim();
         var password = document.getElementById("userPassword").value;
@@ -1331,7 +1323,9 @@
         error.classList.remove("show");
         success.classList.remove("show");
 
-        // CHECK EMPTY
+        console.log('📧 Email:', email);
+        console.log('🔑 Password entered:', password ? 'Yes' : 'No');
+
         if (!email || !password) {
             error.querySelector("span").textContent = "Please enter your email and password.";
             error.classList.add("show");
@@ -1339,39 +1333,35 @@
         }
 
         try {
-            // ===== CHECK USER IN SUPABASE =====
+            console.log('🔍 Checking user in Supabase...');
             var user = await getUserByEmail(email);
+            console.log('👤 User found:', user);
 
-            // NO ACCOUNT
             if (!user) {
                 error.querySelector("span").textContent = "No account found. Please create an account first.";
                 error.classList.add("show");
                 return;
             }
 
-            // CHECK PASSWORD
             if (password !== user.password) {
                 error.querySelector("span").textContent = "Incorrect email or password.";
                 error.classList.add("show");
                 return;
             }
 
-            // ===== UPDATE LAST LOGIN =====
+            console.log('✅ Login successful!');
+
             await updateUser(email, {
                 last_login: new Date().toISOString()
             });
 
-            // ===== LOGIN SUCCESS =====
             sessionStorage.clear();
 
             sessionStorage.setItem("userEmail", user.email);
             sessionStorage.setItem("userName", user.name);
             sessionStorage.setItem("userType", user.user_type || 'user');
-
-            // Remove admin session if exists
             sessionStorage.removeItem("adminLoggedIn");
 
-            // ===== REGISTER AS ACTIVE USER =====
             await upsertActiveUser({
                 id: user.email,
                 name: user.name,
@@ -1393,7 +1383,7 @@
             }, 1500);
 
         } catch (err) {
-            console.error('Login error:', err);
+            console.error('❌ Login error:', err);
             error.querySelector("span").textContent = "Error: " + err.message;
             error.classList.add("show");
         }
@@ -1422,7 +1412,6 @@
             return;
         }
 
-        // ADMIN CREDENTIALS
         if (email === "admin@gmail.com" && password === "admin123") {
             sessionStorage.clear();
 
@@ -1450,7 +1439,7 @@
 
 
     // ============================================================
-    // SESSION CHECK - UPDATED
+    // SESSION CHECK
     // ============================================================
 
     var isAdminLoggedIn = sessionStorage.getItem("adminLoggedIn") === "true";
@@ -1480,7 +1469,7 @@
         });
     });
 
-    console.log("CPRMS Login System Ready with Supabase (Direct)");
+    console.log("🚀 Login system ready!");
 </script>
 
 </body>
