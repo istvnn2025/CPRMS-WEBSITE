@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Supabase - Simple</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Supabase Test - Simple</h1>
+    <div id="result">Testing...</div>
+    
+    <script>
+        // Initialize Supabase directly here
+        const supabase = window.supabase.createClient(
+            'https://aqrwojihqnooaxiytgmv.supabase.co',
+            'sb_publishable_S1SjM1Gq-LxeCZks88QwgQ_rbXus_'
+        );
+        
+        console.log('supabase client created:', supabase);
+        console.log('supabase.from type:', typeof supabase.from);
+        
+        async function test() {
+            try {
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('*');
+                    
+                if (error) {
+                    document.getElementById('result').innerHTML = `
+                        <p style="color:orange;">⚠️ Error: ${error.message}</p>
+                        <p>But the connection works! Check if 'users' table exists.</p>
+                    `;
+                    return;
+                }
+                
+                document.getElementById('result').innerHTML = `
+                    <p style="color:green;">✅ Connection Successful!</p>
+                    <p>Users found: ${data ? data.length : 0}</p>
+                `;
+            } catch (err) {
+                document.getElementById('result').innerHTML = `
+                    <p style="color:red;">❌ Error: ${err.message}</p>
+                `;
+                console.error(err);
+            }
+        }
+        
+        test();
+    </script>
+</body>
+</html>
