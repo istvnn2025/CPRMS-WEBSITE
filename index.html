@@ -12,9 +12,6 @@
     <!-- ===== 2. SUPABASE LIBRARY SECOND ===== -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- ===== 3. SUPABASE CONFIG THIRD ===== -->
-    <script src="supabase-config.js"></script>
-
     <style>
         * {
             margin: 0;
@@ -1090,6 +1087,64 @@
 
 <script>
     // ============================================================
+    // SUPABASE SETUP - DIRECT IN HTML
+    // ============================================================
+
+    const SUPABASE_URL = 'https://aqrwojihqnooaxiytgmv.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_S1SjM1Gq-LxeCZks88QwgQ_rbXus_';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function getUserByEmail(email) {
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', email)
+            .single();
+        if (error && error.code !== 'PGRST116') throw error;
+        return data;
+    }
+
+    async function createUser(userData) {
+        const { data, error } = await supabase
+            .from('users')
+            .insert([userData])
+            .select();
+        if (error) throw error;
+        return data;
+    }
+
+    async function createProfile(profileData) {
+        const { data, error } = await supabase
+            .from('profiles')
+            .insert([profileData])
+            .select();
+        if (error) throw error;
+        return data;
+    }
+
+    async function updateUser(email, updates) {
+        const { data, error } = await supabase
+            .from('users')
+            .update(updates)
+            .eq('email', email)
+            .select();
+        if (error) throw error;
+        return data;
+    }
+
+    async function upsertActiveUser(userData) {
+        const { data, error } = await supabase
+            .from('active_users')
+            .upsert([userData], { onConflict: 'id' })
+            .select();
+        if (error) throw error;
+        return data;
+    }
+
+    console.log('✅ Supabase functions ready (direct)');
+
+
+    // ============================================================
     // PASSWORD SHOW / HIDE
     // ============================================================
 
@@ -1165,24 +1220,6 @@
     showLogin.addEventListener("click", showUserLogin);
     userTab.addEventListener("click", showUserLogin);
     adminTab.addEventListener("click", showAdminLogin);
-
-
-    // ============================================================
-    // CHECK IF SUPABASE FUNCTIONS ARE LOADED
-    // ============================================================
-
-    console.log('🔍 Checking Supabase functions...');
-    console.log('typeof getUserByEmail:', typeof getUserByEmail);
-    console.log('typeof createUser:', typeof createUser);
-    console.log('typeof createProfile:', typeof createProfile);
-    console.log('typeof updateUser:', typeof updateUser);
-    console.log('typeof upsertActiveUser:', typeof upsertActiveUser);
-
-    if (typeof getUserByEmail === 'undefined') {
-        console.error('❌ getUserByEmail is not defined! Check supabase-config.js');
-    } else {
-        console.log('✅ Supabase functions loaded successfully!');
-    }
 
 
     // ============================================================
@@ -1443,7 +1480,7 @@
         });
     });
 
-    console.log("CPRMS Login System Ready with Supabase");
+    console.log("CPRMS Login System Ready with Supabase (Direct)");
 </script>
 
 </body>
