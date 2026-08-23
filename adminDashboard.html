@@ -6,12 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin · Pagbilao Permit System</title>
     
-    <!-- ===== SUPABASE - ADDED ===== -->
+    <!-- ===== 1. SUPABASE LIBRARY FIRST ===== -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- ===== 2. SUPABASE CONFIG SECOND ===== -->
     <script src="supabase-config.js"></script>
     
-    <!-- Font Awesome 6 -->
+    <!-- ===== 3. FONT AWESOME AFTER SCRIPTS ===== -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    
     <style>
         /* === RESET & BASE === */
         * {
@@ -2919,8 +2922,7 @@
             }
 
             // ============================================================
-            // STORAGE LISTENER
-            // ============================================================
+            // STORAGE LISTENER            // ============================================================
             window.addEventListener('storage', function(e) {
                 if (e.key === 'userApplications' || e.key === 'userPermits' || e.key === 'userNotifications' || e.key === 'activeUsers') {
                     console.log('Data changed, refreshing admin...');
