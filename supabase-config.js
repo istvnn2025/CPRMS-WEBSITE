@@ -1,12 +1,11 @@
 // ============================================================
-// SUPABASE CONFIGURATION
+// SUPABASE CONFIGURATION - FIXED
 // ============================================================
 
-// Your Supabase credentials
 const SUPABASE_URL = 'https://aqrwojihqnooaxiytgmv.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_S1SjM1Gq-LxeCZks88QwgQ_rbXus_';
 
-// Initialize Supabase client
+// ✅ CORRECT - Use window.supabase
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 console.log('✅ Supabase connected!');
