@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pagbilao · Permit Dashboard</title>
     
-    <!-- ===== SUPABASE - ADDED ===== -->
+    <!-- ===== 1. SUPABASE LIBRARY FIRST ===== -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- ===== 2. SUPABASE CONFIG SECOND ===== -->
     <script src="supabase-config.js"></script>
     
-    <!-- ===== FIX: Force User Dashboard ===== -->
+    <!-- ===== 3. FIX: Force User Dashboard ===== -->
     <script>
         (function() {
             "use strict";
@@ -49,6 +51,7 @@
         })();
     </script>
     
+    <!-- ===== 4. CSS AFTER SCRIPTS ===== -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
     <link rel="stylesheet" href="dashboard.css" />
 </head>
