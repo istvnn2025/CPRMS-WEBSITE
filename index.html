@@ -8,6 +8,10 @@
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
+    <!-- ===== SUPABASE - ADDED ===== -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+
     <style>
         * {
             margin: 0;
@@ -844,7 +848,7 @@
 
 
         <!-- ===================================================== -->
-        <!-- CREATE ACCOUNT -->
+        <!-- CREATE ACCOUNT - UPDATED WITH SUPABASE -->
         <!-- ===================================================== -->
 
         <div id="createAccountBox" class="login-box hidden">
@@ -1194,12 +1198,12 @@
 
 
     // ============================================================
-    // CREATE USER ACCOUNT
+    // CREATE USER ACCOUNT - UPDATED WITH SUPABASE
     // ============================================================
 
     document
         .getElementById("createAccountForm")
-        .addEventListener("submit", function(e) {
+        .addEventListener("submit", async function(e) {
 
             e.preventDefault();
 
@@ -1283,17 +1287,12 @@
             }
 
 
-            // CHECK IF ACCOUNT ALREADY EXISTS
+            try {
 
-            var existingAccount =
-                localStorage.getItem("cprmsUser");
+                // ===== CHECK IF USER EXISTS IN SUPABASE =====
+                var existingUser = await getUserByEmail(email);
 
-            if (existingAccount) {
-
-                var account =
-                    JSON.parse(existingAccount);
-
-                if (account.email === email) {
+                if (existingUser) {
 
                     error.querySelector("span").textContent =
                         "An account with this email already exists.";
@@ -1302,63 +1301,73 @@
 
                     return;
                 }
-            }
 
 
-            // SAVE ACCOUNT
-
-            var userAccount = {
-
-                name: name,
-                email: email,
-                password: password
-
-            };
+                // ===== CREATE USER IN SUPABASE =====
+                await createUser({
+                    email: email,
+                    name: name,
+                    password: password,
+                    user_type: 'user'
+                });
 
 
-            localStorage.setItem(
-                "cprmsUser",
-                JSON.stringify(userAccount)
-            );
+                // ===== CREATE PROFILE IN SUPABASE =====
+                await createProfile({
+                    email: email,
+                    name: name,
+                    user_type: 'Resident',
+                    member_since: new Date().toISOString()
+                });
 
 
-            // SUCCESS
+                // SUCCESS
 
-            success.querySelector("span").textContent =
-                "Account created successfully! Please log in.";
+                success.querySelector("span").textContent =
+                    "Account created successfully! Please log in.";
 
-            success.classList.add("show");
-
-
-            // CLEAR FORM
-
-            document.getElementById(
-                "createAccountForm"
-            ).reset();
+                success.classList.add("show");
 
 
-            // GO BACK TO LOGIN
-
-            setTimeout(function() {
-
-                showUserLogin();
+                // CLEAR FORM
 
                 document.getElementById(
-                    "userEmail"
-                ).value = email;
+                    "createAccountForm"
+                ).reset();
 
-            }, 1500);
+
+                // GO BACK TO LOGIN
+
+                setTimeout(function() {
+
+                    showUserLogin();
+
+                    document.getElementById(
+                        "userEmail"
+                    ).value = email;
+
+                }, 1500);
+
+            } catch (err) {
+
+                console.error('Registration error:', err);
+
+                error.querySelector("span").textContent =
+                    "An error occurred. Please try again.";
+
+                error.classList.add("show");
+            }
 
         });
 
 
     // ============================================================
-    // USER LOGIN
+    // USER LOGIN - UPDATED WITH SUPABASE
     // ============================================================
 
     document
         .getElementById("userForm")
-        .addEventListener("submit", function(e) {
+        .addEventListener("submit", async function(e) {
 
             e.preventDefault();
 
@@ -1396,93 +1405,111 @@
             }
 
 
-            // GET REGISTERED ACCOUNT
+            try {
 
-            var savedAccount =
-                localStorage.getItem("cprmsUser");
-
-
-            // NO ACCOUNT
-
-            if (!savedAccount) {
-
-                error.querySelector("span").textContent =
-                    "No account found. Please create an account first.";
-
-                error.classList.add("show");
-
-                return;
-            }
+                // ===== CHECK USER IN SUPABASE =====
+                var user = await getUserByEmail(email);
 
 
-            var account =
-                JSON.parse(savedAccount);
+                // NO ACCOUNT
+
+                if (!user) {
+
+                    error.querySelector("span").textContent =
+                        "No account found. Please create an account first.";
+
+                    error.classList.add("show");
+
+                    return;
+                }
 
 
-            // CHECK ACCOUNT
+                // CHECK PASSWORD
 
-            if (
-                email !== account.email ||
-                password !== account.password
-            ) {
+                if (password !== user.password) {
 
-                error.querySelector("span").textContent =
-                    "Incorrect email or password.";
+                    error.querySelector("span").textContent =
+                        "Incorrect email or password.";
 
-                error.classList.add("show");
+                    error.classList.add("show");
 
-                return;
-            }
+                    return;
+                }
 
 
-            // LOGIN SUCCESS
-
-            sessionStorage.clear();
-
-            sessionStorage.setItem(
-                "userLoggedIn",
-                "true"
-            );
-
-            sessionStorage.setItem(
-                "userEmail",
-                account.email
-            );
-
-            sessionStorage.setItem(
-                "userName",
-                account.name
-            );
-
-            sessionStorage.setItem(
-                "userType",
-                "user"
-            );
+                // ===== UPDATE LAST LOGIN =====
+                await updateUser(email, {
+                    last_login: new Date().toISOString()
+                });
 
 
-            success.querySelector("span").textContent =
-                "Login successful! Redirecting...";
+                // ===== LOGIN SUCCESS =====
 
-            success.classList.add("show");
+                sessionStorage.clear();
 
-
-            var submitBtn =
-                this.querySelector(
-                    'button[type="submit"]'
+                sessionStorage.setItem(
+                    "userEmail",
+                    user.email
                 );
 
-            submitBtn.disabled = true;
+                sessionStorage.setItem(
+                    "userName",
+                    user.name
+                );
 
-            submitBtn.innerHTML =
-                '<i class="fas fa-spinner fa-spin"></i> Redirecting...';
+                sessionStorage.setItem(
+                    "userType",
+                    user.user_type || 'user'
+                );
+
+                // Remove admin session if exists
+                sessionStorage.removeItem("adminLoggedIn");
 
 
-            setTimeout(function() {
+                // ===== REGISTER AS ACTIVE USER =====
+                await upsertActiveUser({
+                    id: user.email,
+                    name: user.name,
+                    email: user.email,
+                    initials: user.name.split(' ').map(n => n[0]).join('').toUpperCase(),
+                    last_active: new Date().toISOString(),
+                    status: 'online'
+                });
 
-                window.location.href =
-                    "dashboard.html";
 
-            }, 1500);
+                success.querySelector("span").textContent =
+                    "Login successful! Redirecting...";
+
+                success.classList.add("show");
+
+
+                var submitBtn =
+                    this.querySelector(
+                        'button[type="submit"]'
+                    );
+
+                submitBtn.disabled = true;
+
+                submitBtn.innerHTML =
+                    '<i class="fas fa-spinner fa-spin"></i> Redirecting...';
+
+
+                setTimeout(function() {
+
+                    window.location.href =
+                        "dashboard.html";
+
+                }, 1500);
+
+            } catch (err) {
+
+                console.error('Login error:', err);
+
+                error.querySelector("span").textContent =
+                    "An error occurred. Please try again.";
+
+                error.classList.add("show");
+            }
 
         });
 
@@ -1596,22 +1623,25 @@
 
 
     // ============================================================
-    // SESSION CHECK
+    // SESSION CHECK - UPDATED
     // ============================================================
 
     var isAdminLoggedIn =
         sessionStorage.getItem("adminLoggedIn") === "true";
 
     var isUserLoggedIn =
-        sessionStorage.getItem("userLoggedIn") === "true";
+        sessionStorage.getItem("userEmail") !== null;
+
+    var userType =
+        sessionStorage.getItem("userType");
 
 
-    if (isAdminLoggedIn) {
+    if (isAdminLoggedIn || userType === "admin") {
 
         window.location.href =
             "adminDashboard.html";
 
-    } else if (isUserLoggedIn) {
+    } else if (isUserLoggedIn && userType === "user") {
 
         window.location.href =
             "dashboard.html";
@@ -1654,7 +1684,7 @@
 
 
     console.log(
-        "CPRMS Login System Ready"
+        "CPRMS Login System Ready with Supabase"
     );
 
 </script>
