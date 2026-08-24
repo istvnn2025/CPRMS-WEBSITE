@@ -1,4 +1,3 @@
-<!-- admindashboard.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,28 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin · Pagbilao Permit System</title>
     
-    <!-- ===== 1. SUPABASE LIBRARY FIRST ===== -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- ===== 1. FIREBASE LIBRARIES ===== -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
-    <!-- ===== 2. SUPABASE CONFIG SECOND ===== -->
-    <script src="supabase-config.js"></script>
+    <!-- ===== 2. FIREBASE CONFIG ===== -->
+    <script src="firebase-config.js"></script>
     
-    <!-- ===== 3. FONT AWESOME AFTER SCRIPTS ===== -->
+    <!-- ===== 3. FONT AWESOME ===== -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     
     <style>
         /* === RESET & BASE === */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
-        }
-        body {
-            background: #f4f0f0;
-            min-height: 100vh;
-            display: flex;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, system-ui, sans-serif; }
+        body { background: #f4f0f0; min-height: 100vh; display: flex; }
 
         /* === SIDEBAR === */
         .sidebar {
@@ -55,34 +47,16 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.15);
             padding-bottom: 1.2rem;
         }
-        .sidebar .brand img {
-            width: 44px;
-            height: 44px;
-            object-fit: cover;
-            border-radius: 50%;
-            background: white;
-            padding: 2px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-        .sidebar .brand span {
-            font-weight: 600;
-            font-size: 1rem;
-            letter-spacing: -0.2px;
-        }
-        .sidebar .brand small {
-            display: block;
-            font-weight: 300;
-            font-size: 0.65rem;
-            opacity: 0.75;
-        }
+        .sidebar .brand img { width: 44px; height: 44px; object-fit: cover; border-radius: 50%; background: white; padding: 2px; border: 2px solid rgba(255,255,255,0.3); }
+        .sidebar .brand span { font-weight: 600; font-size: 1rem; letter-spacing: -0.2px; }
+        .sidebar .brand small { display: block; font-weight: 300; font-size: 0.65rem; opacity: 0.75; }
 
-        /* === ACTIVE USERS SECTION IN SIDEBAR === */
         .active-users-section {
             margin-bottom: 1.5rem;
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255,255,255,0.08);
             border-radius: 16px;
             padding: 0.8rem 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255,255,255,0.06);
         }
         .active-users-section .section-header {
             display: flex;
@@ -112,17 +86,6 @@
             max-height: 200px;
             overflow-y: auto;
         }
-        .active-users-list::-webkit-scrollbar {
-            width: 3px;
-        }
-        .active-users-list::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-        .active-users-list::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-        }
         .active-user-item {
             display: flex;
             align-items: center;
@@ -132,14 +95,12 @@
             transition: 0.15s;
             font-size: 0.8rem;
         }
-        .active-user-item:hover {
-            background: rgba(255, 255, 255, 0.08);
-        }
+        .active-user-item:hover { background: rgba(255,255,255,0.08); }
         .active-user-item .user-avatar-mini {
             width: 24px;
             height: 24px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255,255,255,0.2);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -147,46 +108,15 @@
             font-size: 0.6rem;
             flex-shrink: 0;
         }
-        .active-user-item .user-name-mini {
-            flex: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .active-user-item .status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-        .active-user-item .status-dot.online {
-            background: #4ade80;
-            animation: pulse-dot 1.5s ease-in-out infinite;
-        }
-        .active-user-item .status-dot.idle {
-            background: #fbbf24;
-        }
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.8); }
-        }
-        .no-active-users {
-            text-align: center;
-            padding: 0.8rem 0.3rem;
-            font-size: 0.7rem;
-            opacity: 0.6;
-        }
-        .no-active-users i {
-            display: block;
-            font-size: 1.2rem;
-            margin-bottom: 4px;
-            opacity: 0.5;
-        }
+        .active-user-item .user-name-mini { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .active-user-item .status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+        .active-user-item .status-dot.online { background: #4ade80; animation: pulse-dot 1.5s ease-in-out infinite; }
+        .active-user-item .status-dot.idle { background: #fbbf24; }
+        @keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
+        .no-active-users { text-align: center; padding: 0.8rem 0.3rem; font-size: 0.7rem; opacity: 0.6; }
+        .no-active-users i { display: block; font-size: 1.2rem; margin-bottom: 4px; opacity: 0.5; }
 
-        /* === SIDEBAR NAVIGATION === */
-        .sidebar nav {
-            flex: 1;
-        }
+        .sidebar nav { flex: 1; }
         .sidebar nav a {
             display: flex;
             align-items: center;
@@ -194,33 +124,30 @@
             padding: 0.7rem 1rem;
             margin: 0.1rem 0;
             border-radius: 40px;
-            color: rgba(255, 255, 255, 0.8);
+            color: rgba(255,255,255,0.8);
             text-decoration: none;
             font-weight: 500;
             transition: 0.2s;
             font-size: 0.9rem;
             cursor: pointer;
         }
-        .sidebar nav a i {
-            width: 20px;
-            font-size: 1rem;
-        }
+        .sidebar nav a i { width: 20px; font-size: 1rem; }
         .sidebar nav a:hover,
         .sidebar nav a.active {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255,255,255,0.15);
             color: white;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
         .sidebar .logout-btn {
             margin-top: 1rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            border-top: 1px solid rgba(255,255,255,0.12);
             padding-top: 1rem;
         }
         .sidebar .logout-btn a {
             display: flex;
             align-items: center;
             gap: 12px;
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255,255,255,0.7);
             text-decoration: none;
             padding: 0.6rem 1rem;
             border-radius: 40px;
@@ -228,12 +155,8 @@
             font-weight: 500;
             cursor: pointer;
         }
-        .sidebar .logout-btn a:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
+        .sidebar .logout-btn a:hover { background: rgba(255,255,255,0.1); color: white; }
 
-        /* Mobile hamburger button */
         .sidebar-toggle {
             display: none;
             position: fixed;
@@ -249,21 +172,10 @@
             cursor: pointer;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
-        .sidebar-toggle:hover {
-            background: #8f1515;
-        }
+        .sidebar-toggle:hover { background: #8f1515; }
 
-        /* === MAIN CONTENT === */
-        .main {
-            flex: 1;
-            padding: 0;
-            background: #faf8f8;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-        }
+        .main { flex: 1; padding: 0; background: #faf8f8; display: flex; flex-direction: column; min-width: 0; }
 
-        /* === TOP HEADER === */
         .top-header {
             background: white;
             padding: 0.7rem 2.5rem;
@@ -274,23 +186,13 @@
             position: sticky;
             top: 0;
             z-index: 50;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
             flex-wrap: wrap;
             gap: 0.8rem;
         }
-        .top-header .page-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: #1f1414;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .top-header .page-title i {
-            color: #b31b1b;
-        }
+        .top-header .page-title { font-size: 1.3rem; font-weight: 600; color: #1f1414; display: flex; align-items: center; gap: 10px; }
+        .top-header .page-title i { color: #b31b1b; }
 
-        /* === USER PROFILE (TOP RIGHT) === */
         .user-profile {
             position: relative;
             display: flex;
@@ -303,10 +205,7 @@
             background: #f8f5f5;
             border: 1px solid transparent;
         }
-        .user-profile:hover {
-            background: #f0ecec;
-            border-color: #e6d6d6;
-        }
+        .user-profile:hover { background: #f0ecec; border-color: #e6d6d6; }
         .user-profile .avatar {
             width: 34px;
             height: 34px;
@@ -320,44 +219,20 @@
             font-size: 0.8rem;
             flex-shrink: 0;
         }
-        .user-profile .user-info {
-            display: flex;
-            flex-direction: column;
-            line-height: 1.2;
-        }
-        .user-profile .user-info .name {
-            font-weight: 600;
-            font-size: 0.8rem;
-            color: #1f1414;
-        }
-        .user-profile .user-info .role {
-            font-size: 0.6rem;
-            color: #755a5a;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .user-profile .user-info .role i {
-            color: #b31b1b;
-            font-size: 0.4rem;
-        }
-        .user-profile .dropdown-arrow {
-            color: #755a5a;
-            font-size: 0.65rem;
-            transition: 0.2s;
-        }
-        .user-profile:hover .dropdown-arrow {
-            transform: rotate(180deg);
-        }
+        .user-profile .user-info { display: flex; flex-direction: column; line-height: 1.2; }
+        .user-profile .user-info .name { font-weight: 600; font-size: 0.8rem; color: #1f1414; }
+        .user-profile .user-info .role { font-size: 0.6rem; color: #755a5a; display: flex; align-items: center; gap: 4px; }
+        .user-profile .user-info .role i { color: #b31b1b; font-size: 0.4rem; }
+        .user-profile .dropdown-arrow { color: #755a5a; font-size: 0.65rem; transition: 0.2s; }
+        .user-profile:hover .dropdown-arrow { transform: rotate(180deg); }
 
-        /* === DROPDOWN MENU === */
         .user-dropdown-menu {
             position: absolute;
             top: calc(100% + 8px);
             right: 0;
             background: white;
             border-radius: 14px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.12);
             min-width: 210px;
             padding: 0.4rem 0;
             opacity: 0;
@@ -367,11 +242,7 @@
             border: 1px solid #f0e6e6;
             z-index: 200;
         }
-        .user-dropdown-menu.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0) scale(1);
-        }
+        .user-dropdown-menu.show { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
         .user-dropdown-menu .menu-item {
             padding: 0.5rem 1.2rem;
             display: flex;
@@ -387,25 +258,11 @@
             width: 100%;
             text-align: left;
         }
-        .user-dropdown-menu .menu-item:hover {
-            background: #f8f5f5;
-        }
-        .user-dropdown-menu .menu-item i {
-            width: 16px;
-            color: #755a5a;
-            font-size: 0.85rem;
-        }
-        .user-dropdown-menu .menu-divider {
-            height: 1px;
-            background: #f0e6e6;
-            margin: 0.2rem 0.8rem;
-        }
-        .user-dropdown-menu .menu-item.danger {
-            color: #b31b1b;
-        }
-        .user-dropdown-menu .menu-item.danger i {
-            color: #b31b1b;
-        }
+        .user-dropdown-menu .menu-item:hover { background: #f8f5f5; }
+        .user-dropdown-menu .menu-item i { width: 16px; color: #755a5a; font-size: 0.85rem; }
+        .user-dropdown-menu .menu-divider { height: 1px; background: #f0e6e6; margin: 0.2rem 0.8rem; }
+        .user-dropdown-menu .menu-item.danger { color: #b31b1b; }
+        .user-dropdown-menu .menu-item.danger i { color: #b31b1b; }
         .user-dropdown-menu .user-email-display {
             padding: 0.5rem 1.2rem;
             font-size: 0.7rem;
@@ -413,19 +270,10 @@
             border-bottom: 1px solid #f0e6e6;
             margin-bottom: 0.2rem;
         }
-        .user-dropdown-menu .user-email-display strong {
-            color: #1f1414;
-            display: block;
-            font-size: 0.8rem;
-        }
+        .user-dropdown-menu .user-email-display strong { color: #1f1414; display: block; font-size: 0.8rem; }
 
-        /* === PAGE CONTENT === */
-        .page-content {
-            padding: 1.5rem 2.5rem;
-            flex: 1;
-        }
+        .page-content { padding: 1.5rem 2.5rem; flex: 1; }
 
-        /* === CONNECTION INFO === */
         .connection-info {
             background: #fef7e9;
             border-left: 4px solid #b31b1b;
@@ -439,12 +287,8 @@
             gap: 10px;
             flex-wrap: wrap;
         }
-        .connection-info i {
-            color: #b31b1b;
-        }
-        .connection-info strong {
-            color: #b31b1b;
-        }
+        .connection-info i { color: #b31b1b; }
+        .connection-info strong { color: #b31b1b; }
         .connection-info .session-badge {
             margin-left: auto;
             font-size: 0.65rem;
@@ -457,15 +301,9 @@
             gap: 4px;
         }
 
-        /* === PAGE CONTAINER === */
-        .page {
-            display: none;
-        }
-        .page.active {
-            display: block;
-        }
+        .page { display: none; }
+        .page.active { display: block; }
 
-        /* === STATS GRID === */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -476,87 +314,38 @@
             background: white;
             padding: 1rem 1.2rem;
             border-radius: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
             border: 1px solid #f0e6e6;
             transition: 0.2s;
             display: flex;
             align-items: center;
             gap: 0.8rem;
         }
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(179, 27, 27, 0.08);
-        }
-        .stat-card .stat-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-            color: white;
-            flex-shrink: 0;
-        }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(179,27,27,0.08); }
+        .stat-card .stat-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: white; flex-shrink: 0; }
         .stat-icon.blue { background: #2a7de1; }
         .stat-icon.green { background: #28a745; }
         .stat-icon.yellow { background: #e8a317; }
         .stat-icon.red { background: #dc3545; }
-        .stat-card .stat-info h3 {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #1f1414;
-            line-height: 1.1;
-        }
-        .stat-card .stat-info p {
-            color: #755a5a;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
+        .stat-card .stat-info h3 { font-size: 1.4rem; font-weight: 700; color: #1f1414; line-height: 1.1; }
+        .stat-card .stat-info p { color: #755a5a; font-size: 0.75rem; font-weight: 500; }
 
-        /* === TABLES - Mobile friendly === */
         .table-container {
             background: white;
             border-radius: 20px;
             padding: 1.2rem 1.5rem;
             border: 1px solid #f0e6e6;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
             margin-bottom: 1.2rem;
             overflow: hidden;
         }
-        .table-container h2 {
-            font-size: 1rem;
-            color: #1f1414;
-            margin-bottom: 1rem;
-        }
-        .table-container h2 i {
-            color: #b31b1b;
-            margin-right: 6px;
-        }
-        .table-wrapper {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.8rem;
-            min-width: 500px;
-        }
-        th {
-            text-align: left;
-            padding: 0.6rem 0.4rem;
-            color: #5f3e3e;
-            font-weight: 600;
-            border-bottom: 2px solid #f0e6e6;
-            white-space: nowrap;
-        }
-        td {
-            padding: 0.6rem 0.4rem;
-            border-bottom: 1px solid #f3ecec;
-            color: #2d1c1c;
-            word-break: break-word;
-        }
+        .table-container h2 { font-size: 1rem; color: #1f1414; margin-bottom: 1rem; }
+        .table-container h2 i { color: #b31b1b; margin-right: 6px; }
+        .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 500px; }
+        th { text-align: left; padding: 0.6rem 0.4rem; color: #5f3e3e; font-weight: 600; border-bottom: 2px solid #f0e6e6; white-space: nowrap; }
+        td { padding: 0.6rem 0.4rem; border-bottom: 1px solid #f3ecec; color: #2d1c1c; word-break: break-word; }
+
         .status-badge {
             padding: 0.1rem 0.7rem;
             border-radius: 40px;
@@ -566,39 +355,12 @@
             white-space: nowrap;
         }
         .status-badge.approved,
-        .status-badge.active {
-            background: #e2f0e2;
-            color: #1f6d1f;
-        }
-        .status-badge.rejected {
-            background: #fce4e4;
-            color: #b31b1b;
-        }
-        .status-badge.pending {
-            background: #fef7e0;
-            color: #e37400;
-        }
-        .status-badge.cancelled {
-            background: #f0e6e6;
-            color: #5f3e3e;
-        }
-        .view-link {
-            color: #b31b1b;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.7rem;
-            cursor: pointer;
-        }
-        .view-link:hover {
-            text-decoration: underline;
-        }
+        .status-badge.active { background: #e2f0e2; color: #1f6d1f; }
+        .status-badge.rejected { background: #fce4e4; color: #b31b1b; }
+        .status-badge.pending { background: #fef7e0; color: #e37400; }
+        .status-badge.cancelled { background: #f0e6e6; color: #5f3e3e; }
 
-        /* === ACTION BUTTONS === */
-        .action-buttons {
-            display: flex;
-            gap: 4px;
-            flex-wrap: wrap;
-        }
+        .action-buttons { display: flex; gap: 4px; flex-wrap: wrap; }
         .action-buttons button {
             padding: 0.15rem 0.6rem;
             border: none;
@@ -609,40 +371,15 @@
             transition: 0.2s;
             white-space: nowrap;
         }
-        .action-buttons .btn-approve {
-            background: #28a745;
-            color: white;
-        }
-        .action-buttons .btn-approve:hover {
-            background: #1e7e34;
-            transform: scale(1.05);
-        }
-        .action-buttons .btn-reject {
-            background: #dc3545;
-            color: white;
-        }
-        .action-buttons .btn-reject:hover {
-            background: #b31b1b;
-            transform: scale(1.05);
-        }
-        .action-buttons .btn-cancel {
-            background: #6c757d;
-            color: white;
-        }
-        .action-buttons .btn-cancel:hover {
-            background: #5a6268;
-            transform: scale(1.05);
-        }
-        .action-buttons .btn-view {
-            background: #0d6efd;
-            color: white;
-        }
-        .action-buttons .btn-view:hover {
-            background: #0a58ca;
-            transform: scale(1.05);
-        }
+        .action-buttons .btn-approve { background: #28a745; color: white; }
+        .action-buttons .btn-approve:hover { background: #1e7e34; transform: scale(1.05); }
+        .action-buttons .btn-reject { background: #dc3545; color: white; }
+        .action-buttons .btn-reject:hover { background: #b31b1b; transform: scale(1.05); }
+        .action-buttons .btn-cancel { background: #6c757d; color: white; }
+        .action-buttons .btn-cancel:hover { background: #5a6268; transform: scale(1.05); }
+        .action-buttons .btn-view { background: #0d6efd; color: white; }
+        .action-buttons .btn-view:hover { background: #0a58ca; transform: scale(1.05); }
 
-        /* === USERS PAGE - Removed Action column === */
         .user-avatar-sm {
             width: 26px;
             height: 26px;
@@ -656,12 +393,7 @@
             font-size: 0.65rem;
             flex-shrink: 0;
         }
-        .user-filters {
-            display: flex;
-            gap: 0.8rem;
-            flex-wrap: wrap;
-            margin-bottom: 1rem;
-        }
+        .user-filters { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; }
         .user-filters input {
             padding: 0.35rem 0.8rem;
             border: 1.5px solid #e6d6d6;
@@ -672,10 +404,7 @@
             flex: 1;
             min-width: 160px;
         }
-        .user-filters input:focus {
-            border-color: #b31b1b;
-            box-shadow: 0 0 0 3px rgba(179, 27, 27, 0.08);
-        }
+        .user-filters input:focus { border-color: #b31b1b; box-shadow: 0 0 0 3px rgba(179,27,27,0.08); }
         .user-filters .filter-count {
             background: #f0e6e6;
             padding: 0.15rem 0.7rem;
@@ -686,17 +415,9 @@
             align-items: center;
             gap: 4px;
         }
-        .user-filters .filter-count strong {
-            color: #b31b1b;
-        }
+        .user-filters .filter-count strong { color: #b31b1b; }
 
-        /* === PERMIT FILTERS === */
-        .permit-filters {
-            display: flex;
-            gap: 0.6rem;
-            flex-wrap: wrap;
-            margin-bottom: 1rem;
-        }
+        .permit-filters { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1rem; }
         .permit-filters input,
         .permit-filters select {
             padding: 0.35rem 0.8rem;
@@ -709,12 +430,8 @@
             min-width: 120px;
         }
         .permit-filters input:focus,
-        .permit-filters select:focus {
-            border-color: #b31b1b;
-            box-shadow: 0 0 0 3px rgba(179, 27, 27, 0.08);
-        }
+        .permit-filters select:focus { border-color: #b31b1b; box-shadow: 0 0 0 3px rgba(179,27,27,0.08); }
 
-        /* === PERMIT TYPE DROPDOWN STYLES === */
         .permit-type-select {
             padding: 0.35rem 0.8rem;
             border: 1.5px solid #e6d6d6;
@@ -725,20 +442,10 @@
             min-width: 180px;
             cursor: pointer;
         }
-        .permit-type-select:focus {
-            border-color: #b31b1b;
-            box-shadow: 0 0 0 3px rgba(179, 27, 27, 0.08);
-        }
-        .permit-type-select optgroup {
-            font-weight: 600;
-            color: #1f1414;
-        }
-        .permit-type-select option {
-            font-weight: 400;
-            padding: 0.2rem 0.5rem;
-        }
+        .permit-type-select:focus { border-color: #b31b1b; box-shadow: 0 0 0 3px rgba(179,27,27,0.08); }
+        .permit-type-select optgroup { font-weight: 600; color: #1f1414; }
+        .permit-type-select option { font-weight: 400; padding: 0.2rem 0.5rem; }
 
-        /* === SORT BUTTONS === */
         .sort-btn {
             background: none;
             border: none;
@@ -749,58 +456,21 @@
             transition: 0.2s;
             margin-left: 4px;
         }
-        .sort-btn:hover {
-            color: #b31b1b;
-        }
-        .sort-btn.active {
-            color: #b31b1b;
-        }
+        .sort-btn:hover { color: #b31b1b; }
+        .sort-btn.active { color: #b31b1b; }
         .sort-btn .fa-sort-up,
-        .sort-btn .fa-sort-down {
-            display: none;
-        }
-        .sort-btn .fa-sort {
-            display: inline;
-        }
-        .sort-btn.asc .fa-sort-up {
-            display: inline;
-        }
-        .sort-btn.asc .fa-sort {
-            display: none;
-        }
-        .sort-btn.desc .fa-sort-down {
-            display: inline;
-        }
-        .sort-btn.desc .fa-sort {
-            display: none;
-        }
+        .sort-btn .fa-sort-down { display: none; }
+        .sort-btn .fa-sort { display: inline; }
+        .sort-btn.asc .fa-sort-up { display: inline; }
+        .sort-btn.asc .fa-sort { display: none; }
+        .sort-btn.desc .fa-sort-down { display: inline; }
+        .sort-btn.desc .fa-sort { display: none; }
 
-        /* === EMPTY STATE === */
-        .empty-state {
-            text-align: center;
-            padding: 2rem 1.5rem;
-            color: #755a5a;
-        }
-        .empty-state i {
-            font-size: 2.5rem;
-            color: #b31b1b;
-            opacity: 0.2;
-            margin-bottom: 0.8rem;
-            display: block;
-        }
-        .empty-state h3 {
-            font-size: 1rem;
-            color: #2d1c1c;
-            margin-bottom: 0.2rem;
-        }
-        .empty-state p {
-            font-size: 0.8rem;
-            max-width: 350px;
-            margin: 0 auto;
-            line-height: 1.4;
-        }
+        .empty-state { text-align: center; padding: 2rem 1.5rem; color: #755a5a; }
+        .empty-state i { font-size: 2.5rem; color: #b31b1b; opacity: 0.2; margin-bottom: 0.8rem; display: block; }
+        .empty-state h3 { font-size: 1rem; color: #2d1c1c; margin-bottom: 0.2rem; }
+        .empty-state p { font-size: 0.8rem; max-width: 350px; margin: 0 auto; line-height: 1.4; }
 
-        /* === REPORTS === */
         .reports-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -814,27 +484,11 @@
             text-align: center;
             transition: 0.2s;
         }
-        .report-stat:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-        .report-stat .number {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #b31b1b;
-        }
-        .report-stat .label {
-            color: #755a5a;
-            font-size: 0.7rem;
-            margin-top: 2px;
-        }
-        .report-stat .sub-label {
-            font-size: 0.6rem;
-            color: #a08080;
-            margin-top: 2px;
-        }
+        .report-stat:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .report-stat .number { font-size: 1.8rem; font-weight: 700; color: #b31b1b; }
+        .report-stat .label { color: #755a5a; font-size: 0.7rem; margin-top: 2px; }
+        .report-stat .sub-label { font-size: 0.6rem; color: #a08080; margin-top: 2px; }
 
-        /* === TOAST NOTIFICATION === */
         .toast-container {
             position: fixed;
             top: 20px;
@@ -861,22 +515,10 @@
         .toast.error { background: #dc3545; }
         .toast.info { background: #0d6efd; }
         .toast.warning { background: #e8a317; }
-        .toast .toast-close {
-            margin-left: auto;
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 1.1rem;
-            opacity: 0.7;
-        }
+        .toast .toast-close { margin-left: auto; background: none; border: none; color: white; cursor: pointer; font-size: 1.1rem; opacity: 0.7; }
         .toast .toast-close:hover { opacity: 1; }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(30px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
 
-        /* ===== REVIEW MODAL STYLES ===== */
         .review-modal-overlay {
             display: none;
             position: fixed;
@@ -891,9 +533,7 @@
             justify-content: center;
             padding: 1rem;
         }
-        .review-modal-overlay.active {
-            display: flex;
-        }
+        .review-modal-overlay.active { display: flex; }
         .review-modal {
             background: white;
             border-radius: 24px;
@@ -914,27 +554,10 @@
             flex-shrink: 0;
             background: #f8f5f5;
         }
-        .review-modal-header h3 {
-            color: #1f1414;
-            font-size: 1.1rem;
-        }
-        .review-modal-header .close-review {
-            background: none;
-            border: none;
-            font-size: 1.8rem;
-            color: #b31b1b;
-            cursor: pointer;
-            padding: 0 0.5rem;
-            transition: 0.3s;
-        }
-        .review-modal-header .close-review:hover {
-            transform: rotate(90deg);
-        }
-        .review-modal-body {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1.5rem;
-        }
+        .review-modal-header h3 { color: #1f1414; font-size: 1.1rem; }
+        .review-modal-header .close-review { background: none; border: none; font-size: 1.8rem; color: #b31b1b; cursor: pointer; padding: 0 0.5rem; transition: 0.3s; }
+        .review-modal-header .close-review:hover { transform: rotate(90deg); }
+        .review-modal-body { flex: 1; overflow-y: auto; padding: 1.5rem; }
         .review-applicant-info {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -944,19 +567,9 @@
             border-radius: 12px;
             margin-bottom: 1.2rem;
         }
-        .review-applicant-info .info-item {
-            display: flex;
-            gap: 4px;
-        }
-        .review-applicant-info .info-item strong {
-            color: #3d2626;
-            font-weight: 600;
-            font-size: 0.8rem;
-        }
-        .review-applicant-info .info-item span {
-            color: #1f1414;
-            font-size: 0.8rem;
-        }
+        .review-applicant-info .info-item { display: flex; gap: 4px; }
+        .review-applicant-info .info-item strong { color: #3d2626; font-weight: 600; font-size: 0.8rem; }
+        .review-applicant-info .info-item span { color: #1f1414; font-size: 0.8rem; }
         .review-image-container {
             position: relative;
             width: 100%;
@@ -967,25 +580,14 @@
             border-radius: 8px;
             overflow: hidden;
         }
-        .review-image-container img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-        .review-field-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
+        .review-image-container img { width: 100%; height: auto; display: block; }
+        .review-field-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         .review-field {
             position: absolute;
             font-size: 14px;
             font-family: Arial, sans-serif;
             color: #1f1414;
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(255,255,255,0.7);
             padding: 2px 6px;
             border-radius: 4px;
             border: 1px dashed #b31b1b;
@@ -996,16 +598,8 @@
             max-width: 90%;
             text-overflow: ellipsis;
         }
-        .review-field.empty {
-            border-color: #ff6b6b;
-            background: rgba(255, 107, 107, 0.1);
-        }
-        .review-field.empty::after {
-            content: '⚠️ Empty field';
-            color: #dc3545;
-            font-size: 10px;
-            margin-left: 4px;
-        }
+        .review-field.empty { border-color: #ff6b6b; background: rgba(255,107,107,0.1); }
+        .review-field.empty::after { content: '⚠️ Empty field'; color: #dc3545; font-size: 10px; margin-left: 4px; }
         .review-modal-footer {
             display: flex;
             gap: 0.8rem;
@@ -1025,49 +619,16 @@
             transition: 0.2s;
             font-size: 0.85rem;
         }
-        .review-modal-footer .btn-review-approve {
-            background: #28a745;
-            color: white;
-        }
-        .review-modal-footer .btn-review-approve:hover {
-            background: #1e7e34;
-            transform: scale(1.02);
-        }
-        .review-modal-footer .btn-review-reject {
-            background: #dc3545;
-            color: white;
-        }
-        .review-modal-footer .btn-review-reject:hover {
-            background: #b31b1b;
-            transform: scale(1.02);
-        }
-        .review-modal-footer .btn-review-cancel {
-            background: #6c757d;
-            color: white;
-        }
-        .review-modal-footer .btn-review-cancel:hover {
-            background: #5a6268;
-            transform: scale(1.02);
-        }
-        .review-modal-footer .btn-review-close {
-            background: #f0e6e6;
-            color: #3d2626;
-        }
-        .review-modal-footer .btn-review-close:hover {
-            background: #e6d6d6;
-        }
-        .review-page-indicator {
-            text-align: center;
-            font-size: 0.75rem;
-            color: #6c757d;
-            margin-top: 0.5rem;
-        }
-        .review-page-nav {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: center;
-            margin-top: 0.5rem;
-        }
+        .review-modal-footer .btn-review-approve { background: #28a745; color: white; }
+        .review-modal-footer .btn-review-approve:hover { background: #1e7e34; transform: scale(1.02); }
+        .review-modal-footer .btn-review-reject { background: #dc3545; color: white; }
+        .review-modal-footer .btn-review-reject:hover { background: #b31b1b; transform: scale(1.02); }
+        .review-modal-footer .btn-review-cancel { background: #6c757d; color: white; }
+        .review-modal-footer .btn-review-cancel:hover { background: #5a6268; transform: scale(1.02); }
+        .review-modal-footer .btn-review-close { background: #f0e6e6; color: #3d2626; }
+        .review-modal-footer .btn-review-close:hover { background: #e6d6d6; }
+        .review-page-indicator { text-align: center; font-size: 0.75rem; color: #6c757d; margin-top: 0.5rem; }
+        .review-page-nav { display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.5rem; }
         .review-page-nav button {
             padding: 0.2rem 0.8rem;
             border: 1px solid #f0e6e6;
@@ -1077,20 +638,9 @@
             font-size: 0.7rem;
             transition: 0.2s;
         }
-        .review-page-nav button:hover {
-            background: #f8f5f5;
-            border-color: #b31b1b;
-        }
-        .review-page-nav button:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-        .review-page-dots {
-            display: flex;
-            gap: 6px;
-            justify-content: center;
-            margin-top: 0.3rem;
-        }
+        .review-page-nav button:hover { background: #f8f5f5; border-color: #b31b1b; }
+        .review-page-nav button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .review-page-dots { display: flex; gap: 6px; justify-content: center; margin-top: 0.3rem; }
         .review-page-dot {
             width: 8px;
             height: 8px;
@@ -1101,299 +651,9 @@
             padding: 0;
             transition: 0.3s;
         }
-        .review-page-dot.active {
-            background: #b31b1b;
-        }
-        .review-page-dot:hover {
-            transform: scale(1.2);
-        }
+        .review-page-dot.active { background: #b31b1b; }
+        .review-page-dot:hover { transform: scale(1.2); }
 
-        /* === RESPONSIVE === */
-        @media (max-width: 1024px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .reports-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 850px) {
-            .sidebar-toggle {
-                display: block;
-            }
-            
-            .sidebar {
-                position: fixed;
-                top: 0;
-                left: -280px;
-                width: 280px;
-                height: 100vh;
-                z-index: 999;
-                transition: left 0.3s ease;
-                box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
-                border-radius: 0;
-                padding-top: 4rem;
-            }
-            .sidebar.open {
-                left: 0;
-            }
-            
-            .sidebar .brand span,
-            .sidebar .brand small,
-            .sidebar nav a span,
-            .sidebar .logout-btn a span {
-                display: inline;
-            }
-            .sidebar nav a {
-                justify-content: flex-start;
-                padding: 0.7rem 1rem;
-            }
-            .sidebar nav a i {
-                width: 20px;
-                font-size: 1rem;
-            }
-            .active-users-section .section-header .title,
-            .active-users-section .section-header .count-badge,
-            .active-user-item .user-name-mini {
-                display: inline;
-            }
-            .active-users-section {
-                padding: 0.8rem 1rem;
-                display: block;
-            }
-            .active-users-list {
-                max-height: 200px;
-            }
-            .active-user-item {
-                padding: 0.35rem 0.5rem;
-                justify-content: flex-start;
-            }
-            .active-user-item .user-avatar-mini {
-                width: 24px;
-                height: 24px;
-                font-size: 0.6rem;
-            }
-            .active-user-item .status-dot {
-                width: 6px;
-                height: 6px;
-            }
-            .no-active-users {
-                font-size: 0.7rem;
-            }
-            .no-active-users i {
-                font-size: 1.2rem;
-            }
-            
-            .top-header {
-                padding: 0.5rem 1rem;
-                padding-left: 3.5rem;
-            }
-            .top-header .page-title {
-                font-size: 1rem;
-            }
-            .page-content {
-                padding: 1rem;
-            }
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 0.8rem;
-            }
-            .stat-card {
-                padding: 0.8rem;
-            }
-            .stat-card .stat-icon {
-                width: 36px;
-                height: 36px;
-                font-size: 0.9rem;
-            }
-            .stat-card .stat-info h3 {
-                font-size: 1.2rem;
-            }
-            .stat-card .stat-info p {
-                font-size: 0.65rem;
-            }
-            
-            .user-profile .user-info .name {
-                font-size: 0.7rem;
-            }
-            .user-profile .user-info .role {
-                font-size: 0.55rem;
-            }
-            .user-profile .avatar {
-                width: 28px;
-                height: 28px;
-                font-size: 0.65rem;
-            }
-            
-            .reports-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-            .review-applicant-info {
-                grid-template-columns: 1fr;
-            }
-            .review-modal-footer {
-                justify-content: center;
-            }
-            .review-modal-footer button {
-                padding: 0.4rem 1rem;
-                font-size: 0.75rem;
-            }
-            
-            .permit-filters {
-                flex-direction: column;
-            }
-            .permit-filters input,
-            .permit-filters select {
-                width: 100%;
-            }
-            .user-filters {
-                flex-direction: column;
-            }
-            .user-filters input {
-                width: 100%;
-            }
-            .connection-info .session-badge {
-                margin-left: 0;
-                width: 100%;
-                justify-content: center;
-            }
-            
-            /* Overlay for mobile sidebar */
-            .sidebar-overlay {
-                display: none;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.5);
-                z-index: 998;
-            }
-            .sidebar-overlay.active {
-                display: block;
-            }
-        }
-
-        @media (max-width: 550px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-                gap: 0.6rem;
-            }
-            .stat-card {
-                padding: 0.6rem 0.8rem;
-            }
-            .stat-card .stat-icon {
-                width: 32px;
-                height: 32px;
-                font-size: 0.8rem;
-            }
-            .stat-card .stat-info h3 {
-                font-size: 1rem;
-            }
-            
-            .top-header {
-                padding: 0.4rem 0.8rem;
-                padding-left: 3rem;
-                flex-direction: row;
-                flex-wrap: wrap;
-                gap: 0.4rem;
-            }
-            .top-header .page-title {
-                font-size: 0.9rem;
-            }
-            .user-profile {
-                padding: 0.15rem 0.5rem 0.15rem 0.15rem;
-            }
-            .user-profile .user-info .name {
-                font-size: 0.65rem;
-            }
-            .user-profile .user-info .role {
-                font-size: 0.5rem;
-            }
-            .user-profile .avatar {
-                width: 24px;
-                height: 24px;
-                font-size: 0.55rem;
-            }
-            
-            .page-content {
-                padding: 0.5rem;
-            }
-            .table-container {
-                padding: 0.8rem;
-                border-radius: 12px;
-            }
-            .table-container h2 {
-                font-size: 0.9rem;
-            }
-            table {
-                font-size: 0.7rem;
-                min-width: 400px;
-            }
-            th, td {
-                padding: 0.4rem 0.3rem;
-            }
-            .action-buttons button {
-                font-size: 0.5rem;
-                padding: 0.1rem 0.4rem;
-            }
-            
-            .reports-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 0.6rem;
-            }
-            .report-stat {
-                padding: 0.6rem;
-            }
-            .report-stat .number {
-                font-size: 1.2rem;
-            }
-            
-            .review-modal {
-                max-width: 100%;
-                max-height: 98vh;
-                border-radius: 16px;
-            }
-            .review-modal-body {
-                padding: 0.8rem;
-            }
-            .review-field {
-                font-size: 10px;
-                padding: 1px 4px;
-            }
-            .review-modal-footer {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .review-modal-footer button {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .sidebar-toggle {
-                padding: 0.3rem 0.6rem;
-                font-size: 1rem;
-                top: 0.6rem;
-                left: 0.6rem;
-            }
-            
-            .connection-info {
-                padding: 0.3rem 0.8rem;
-                font-size: 0.65rem;
-                flex-wrap: wrap;
-            }
-            
-            .user-filters .filter-count {
-                font-size: 0.6rem;
-            }
-            .permit-type-select {
-                min-width: 100%;
-                font-size: 0.75rem;
-            }
-        }
-        
-        /* Sidebar close button for mobile */
         .sidebar-close {
             display: none;
             position: absolute;
@@ -1406,33 +666,104 @@
             cursor: pointer;
             opacity: 0.7;
         }
-        .sidebar-close:hover {
-            opacity: 1;
-        }
-        
+        .sidebar-close:hover { opacity: 1; }
+
         @media (max-width: 850px) {
-            .sidebar-close {
-                display: block;
+            .sidebar-toggle { display: block; }
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -280px;
+                width: 280px;
+                height: 100vh;
+                z-index: 999;
+                transition: left 0.3s ease;
+                box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+                border-radius: 0;
+                padding-top: 4rem;
             }
+            .sidebar.open { left: 0; }
+            .sidebar .brand span,
+            .sidebar .brand small,
+            .sidebar nav a span,
+            .sidebar .logout-btn a span { display: inline; }
+            .sidebar nav a { justify-content: flex-start; padding: 0.7rem 1rem; }
+            .sidebar nav a i { width: 20px; font-size: 1rem; }
+            .active-users-section .section-header .title,
+            .active-users-section .section-header .count-badge,
+            .active-user-item .user-name-mini { display: inline; }
+            .active-users-section { padding: 0.8rem 1rem; display: block; }
+            .active-users-list { max-height: 200px; }
+            .active-user-item { padding: 0.35rem 0.5rem; justify-content: flex-start; }
+            .active-user-item .user-avatar-mini { width: 24px; height: 24px; font-size: 0.6rem; }
+            .active-user-item .status-dot { width: 6px; height: 6px; }
+            .no-active-users { font-size: 0.7rem; }
+            .no-active-users i { font-size: 1.2rem; }
+            .top-header { padding: 0.5rem 1rem; padding-left: 3.5rem; }
+            .top-header .page-title { font-size: 1rem; }
+            .page-content { padding: 1rem; }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+            .stat-card { padding: 0.8rem; }
+            .stat-card .stat-icon { width: 36px; height: 36px; font-size: 0.9rem; }
+            .stat-card .stat-info h3 { font-size: 1.2rem; }
+            .stat-card .stat-info p { font-size: 0.65rem; }
+            .user-profile .user-info .name { font-size: 0.7rem; }
+            .user-profile .user-info .role { font-size: 0.55rem; }
+            .user-profile .avatar { width: 28px; height: 28px; font-size: 0.65rem; }
+            .reports-grid { grid-template-columns: 1fr 1fr; }
+            .permit-filters { flex-direction: column; }
+            .permit-filters input,
+            .permit-filters select { width: 100%; }
+            .user-filters { flex-direction: column; }
+            .user-filters input { width: 100%; }
+            .connection-info .session-badge { margin-left: 0; width: 100%; justify-content: center; }
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 998;
+            }
+            .sidebar-overlay.active { display: block; }
+        }
+
+        @media (max-width: 550px) {
+            .stats-grid { grid-template-columns: 1fr; gap: 0.6rem; }
+            .stat-card { padding: 0.6rem 0.8rem; }
+            .stat-card .stat-icon { width: 32px; height: 32px; font-size: 0.8rem; }
+            .stat-card .stat-info h3 { font-size: 1rem; }
+            .top-header { padding: 0.4rem 0.8rem; padding-left: 3rem; flex-direction: row; flex-wrap: wrap; gap: 0.4rem; }
+            .top-header .page-title { font-size: 0.9rem; }
+            .user-profile { padding: 0.15rem 0.5rem 0.15rem 0.15rem; }
+            .user-profile .user-info .name { font-size: 0.65rem; }
+            .user-profile .user-info .role { font-size: 0.5rem; }
+            .user-profile .avatar { width: 24px; height: 24px; font-size: 0.55rem; }
+            .page-content { padding: 0.5rem; }
+            .table-container { padding: 0.8rem; border-radius: 12px; }
+            .table-container h2 { font-size: 0.9rem; }
+            table { font-size: 0.7rem; min-width: 400px; }
+            th, td { padding: 0.4rem 0.3rem; }
+            .action-buttons button { font-size: 0.5rem; padding: 0.1rem 0.4rem; }
+            .reports-grid { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+            .report-stat { padding: 0.6rem; }
+            .report-stat .number { font-size: 1.2rem; }
+            .sidebar-toggle { padding: 0.3rem 0.6rem; font-size: 1rem; top: 0.6rem; left: 0.6rem; }
+            .connection-info { padding: 0.3rem 0.8rem; font-size: 0.65rem; flex-wrap: wrap; }
+            .user-filters .filter-count { font-size: 0.6rem; }
+            .permit-type-select { min-width: 100%; font-size: 0.75rem; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Mobile Sidebar Toggle -->
-    <button class="sidebar-toggle" id="sidebarToggle">
-        <i class="fas fa-bars"></i>
-    </button>
-    
-    <!-- Sidebar Overlay -->
+    <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- ===== SIDEBAR ===== -->
     <aside class="sidebar" id="sidebar">
-        <button class="sidebar-close" id="sidebarClose">
-            <i class="fas fa-times"></i>
-        </button>
-        
+        <button class="sidebar-close" id="sidebarClose"><i class="fas fa-times"></i></button>
         <div class="brand">
             <img src="pagbilao logo.png" alt="logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
             <span>MEO Pagbilao <small>admin</small></span>
@@ -1442,18 +773,14 @@
             </div>
         </div>
 
-        <!-- === ACTIVE USERS SECTION === -->
         <div class="active-users-section" id="activeUsersSection">
             <div class="section-header">
                 <span class="title"><i class="fas fa-circle" style="color:#4ade80;font-size:0.4rem;"></i> Active Users</span>
                 <span class="count-badge" id="activeUserCount">0</span>
             </div>
-            <div class="active-users-list" id="activeUsersList">
-                <!-- Dynamically populated -->
-            </div>
+            <div class="active-users-list" id="activeUsersList"></div>
         </div>
 
-        <!-- ===== SIDEBAR NAVIGATION ===== -->
         <nav>
             <a class="active" data-page="dashboard"><i class="fas fa-gauge-high"></i> <span>Dashboard</span></a>
             <a data-page="users"><i class="fas fa-users"></i> <span>Users</span></a>
@@ -1466,97 +793,62 @@
         </div>
     </aside>
 
-    <!-- ===== MAIN ===== -->
     <div class="main">
-
-        <!-- ===== TOP HEADER ===== -->
         <header class="top-header">
-            <div class="page-title" id="pageTitle">
-                <i class="fas fa-gauge-high"></i> Dashboard
-            </div>
-
-            <!-- User Profile -->
+            <div class="page-title" id="pageTitle"><i class="fas fa-gauge-high"></i> Dashboard</div>
             <div class="user-profile" id="userProfileToggle">
                 <div class="avatar" id="userAvatar">A</div>
                 <div class="user-info">
                     <span class="name" id="userDisplayName">Admin User</span>
-                    <span class="role">
-                        <i class="fas fa-circle" style="color:#4ade80;"></i>
-                        <span id="userDisplayRole">Administrator</span>
-                    </span>
+                    <span class="role"><i class="fas fa-circle" style="color:#4ade80;"></i> <span id="userDisplayRole">Administrator</span></span>
                 </div>
                 <i class="fas fa-chevron-down dropdown-arrow"></i>
-
                 <div class="user-dropdown-menu" id="userDropdownMenu">
                     <div class="user-email-display">
                         <strong id="dropdownUserName">Admin User</strong>
                         <span id="dropdownUserEmail">admin@pagbilao.gov.ph</span>
                     </div>
-                    <button class="menu-item" id="profileMenuItem">
-                        <i class="fas fa-user"></i> My Profile
-                    </button>
-                    <button class="menu-item" id="settingsMenuItem">
-                        <i class="fas fa-gear"></i> Settings
-                    </button>
+                    <button class="menu-item" id="profileMenuItem"><i class="fas fa-user"></i> My Profile</button>
+                    <button class="menu-item" id="settingsMenuItem"><i class="fas fa-gear"></i> Settings</button>
                     <div class="menu-divider"></div>
-                    <button class="menu-item danger" id="dropdownLogoutBtn">
-                        <i class="fas fa-arrow-right-from-bracket"></i> Logout
-                    </button>
+                    <button class="menu-item danger" id="dropdownLogoutBtn"><i class="fas fa-arrow-right-from-bracket"></i> Logout</button>
                 </div>
             </div>
         </header>
 
-        <!-- ===== PAGE CONTENT ===== -->
         <div class="page-content">
-
-            <!-- Connection status -->
             <div class="connection-info" id="connectionMessage">
                 <i class="fas fa-circle-check"></i>
                 <span><strong>Session Active</strong> · <span id="sessionTimeDisplay">just now</span></span>
-                <span class="session-badge">
-                    <i class="fas fa-key"></i> <span id="sessionTime">just now</span>
-                </span>
+                <span class="session-badge"><i class="fas fa-key"></i> <span id="sessionTime">just now</span></span>
             </div>
 
-            <!-- ===== DASHBOARD ===== -->
             <div id="page-dashboard" class="page active">
                 <div class="stats-grid" id="dashboardStats"></div>
                 <div class="table-container">
                     <h2><i class="fas fa-clock-rotate-left"></i> Recent Activity</h2>
                     <div class="table-wrapper">
-                        <table>
-                            <thead><tr><th>User</th><th>Action</th><th>Permit</th><th>Date</th></tr></thead>
-                            <tbody id="recentActivityBody"></tbody>
-                        </table>
+                        <table><thead><tr><th>User</th><th>Action</th><th>Permit</th><th>Date</th></tr></thead><tbody id="recentActivityBody"></tbody></table>
                     </div>
                 </div>
             </div>
 
-            <!-- ===== USERS - Removed Action Column ===== -->
             <div id="page-users" class="page">
                 <div class="table-container">
                     <h2><i class="fas fa-users"></i> Users with Permits</h2>
                     <div class="user-filters">
                         <input type="text" id="searchUser" placeholder="🔍 Search by user name or email..." />
-                        <span class="filter-count">
-                            <i class="fas fa-user"></i> <strong id="userCount">0</strong> users found
-                        </span>
+                        <span class="filter-count"><i class="fas fa-user"></i> <strong id="userCount">0</strong> users found</span>
                     </div>
                     <div class="table-wrapper">
-                        <table>
-                            <thead><tr><th>User</th><th>Email</th><th>Permits</th><th>Status</th><th>Joined</th></tr></thead>
-                            <tbody id="usersTableBody"></tbody>
-                        </table>
+                        <table><thead><tr><th>User</th><th>Email</th><th>Permits</th><th>Status</th><th>Joined</th></tr></thead><tbody id="usersTableBody"></tbody></table>
                     </div>
                 </div>
             </div>
 
-            <!-- ===== PERMITS - With "All Types" Dropdown ===== -->
             <div id="page-permits" class="page">
                 <div class="table-container">
                     <h2><i class="fas fa-file-signature"></i> All Permits</h2>
-                    
-                    <!-- Filters with "All Types" Dropdown -->
                     <div class="permit-filters">
                         <input type="text" id="searchPermit" placeholder="Search permit # or applicant..." />
                         <select class="permit-type-select" id="permitTypeFilter">
@@ -1586,43 +878,22 @@
                         <select id="filterStatus"><option value="">All Status</option><option>Approved</option><option>Pending</option><option>Rejected</option><option>Cancelled</option><option>Active</option><option>Expired</option></select>
                     </div>
                     <div class="table-wrapper">
-                        <table>
-                            <thead><tr><th>Permit #</th><th>Applicant</th><th>Type</th><th>Issued</th><th>Expiry</th><th>Status</th></tr></thead>
-                            <tbody id="permitsTableBody"></tbody>
-                        </table>
+                        <table><thead><tr><th>Permit #</th><th>Applicant</th><th>Type</th><th>Issued</th><th>Expiry</th><th>Status</th></tr></thead><tbody id="permitsTableBody"></tbody></table>
                     </div>
                 </div>
             </div>
 
-            <!-- ===== APPLICATIONS - Sorted with Sort Icons ===== -->
             <div id="page-applications" class="page">
                 <div class="table-container">
                     <h2><i class="fas fa-clipboard-list"></i> Permit Applications</h2>
-                    <p style="font-size:0.8rem;color:#755a5a;margin-bottom:1rem;">
-                        <i class="fas fa-info-circle"></i> Review and manage permit applications from users
-                    </p>
+                    <p style="font-size:0.8rem;color:#755a5a;margin-bottom:1rem;"><i class="fas fa-info-circle"></i> Review and manage permit applications from users</p>
                     <div class="table-wrapper">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Applicant</th>
-                                    <th>Type</th>
-                                    <th>
-                                        Date Filed
-                                        <button class="sort-btn" onclick="sortApplications('date')" title="Sort by date">
-                                            <i class="fas fa-sort"></i>
-                                            <i class="fas fa-sort-up"></i>
-                                            <i class="fas fa-sort-down"></i>
-                                        </button>
-                                    </th>
-                                    <th>
-                                        Status
-                                        <button class="sort-btn" onclick="sortApplications('status')" title="Sort by status">
-                                            <i class="fas fa-sort"></i>
-                                            <i class="fas fa-sort-up"></i>
-                                            <i class="fas fa-sort-down"></i>
-                                        </button>
-                                    </th>
+                                    <th>Applicant</th><th>Type</th>
+                                    <th>Date Filed <button class="sort-btn" onclick="sortApplications('date')"><i class="fas fa-sort"></i></button></th>
+                                    <th>Status <button class="sort-btn" onclick="sortApplications('status')"><i class="fas fa-sort"></i></button></th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -1632,7 +903,6 @@
                 </div>
             </div>
 
-            <!-- ===== REPORTS ===== -->
             <div id="page-reports" class="page">
                 <div class="table-container">
                     <h2><i class="fas fa-chart-simple"></i> Reports & Analytics</h2>
@@ -1643,14 +913,11 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 
-    <!-- ===== TOAST CONTAINER ===== -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- ===== REVIEW MODAL ===== -->
     <div class="review-modal-overlay" id="reviewModal">
         <div class="review-modal">
             <div class="review-modal-header">
@@ -1658,7 +925,6 @@
                 <button class="close-review" onclick="closeReviewModal()">&times;</button>
             </div>
             <div class="review-modal-body" id="reviewModalBody">
-                <!-- Applicant Info -->
                 <div class="review-applicant-info" id="reviewApplicantInfo">
                     <div class="info-item"><strong>Applicant:</strong> <span id="reviewApplicant">—</span></div>
                     <div class="info-item"><strong>Email:</strong> <span id="reviewEmail">—</span></div>
@@ -1667,14 +933,10 @@
                     <div class="info-item"><strong>Status:</strong> <span id="reviewStatus">—</span></div>
                     <div class="info-item"><strong>App ID:</strong> <span id="reviewAppId">—</span></div>
                 </div>
-
-                <!-- Permit Image with Fields -->
                 <div class="review-image-container" id="reviewImageContainer">
                     <img id="reviewPermitImage" src="" alt="Permit Form" />
                     <div class="review-field-overlay" id="reviewFieldOverlay"></div>
                 </div>
-
-                <!-- Page Navigation -->
                 <div class="review-page-indicator" id="reviewPageIndicator">Page 1 / 1</div>
                 <div class="review-page-dots" id="reviewPageDots"></div>
                 <div class="review-page-nav">
@@ -1696,78 +958,81 @@
             "use strict";
 
             // ============================================================
-            // PERMIT IMAGES MAPPING (SAME AS USER SIDE)
+            // CHECK IF ADMIN IS LOGGED IN
             // ============================================================
-            const permitImages = {
-                'architectural': {
-                    pages: ['architectural (front).png', 'architectural (back).png'],
-                    name: 'Architectural Permit'
-                },
-                'civil-structural': {
-                    pages: ['civil-structural (front).png', 'civil-structural.png'],
-                    name: 'Civil/Structural Permit'
-                },
-                'demolition': {
-                    pages: ['demolition (front).png', 'demolition (back).png'],
-                    name: 'Demolition Permit'
-                },
-                'electrical': {
-                    pages: ['electrical (front).png', 'electrical.png'],
-                    name: 'Electrical Permit'
-                },
-                'excavation': {
-                    pages: ['excavation and gound (front).png', 'excavation and ground (back).png'],
-                    name: 'Excavation Permit'
-                },
-                'fencing': {
-                    pages: ['fencing (front).png', 'fencing (back).png'],
-                    name: 'Fencing Permit'
-                },
-                'mechanical': {
-                    pages: ['mechanical (front).png', 'mechanical (back).png'],
-                    name: 'Mechanical Permit'
-                },
-                'temporary-service': {
-                    pages: ['permit for temporary service connection (front).png', 'permit for temporary service connection (back).png'],
-                    name: 'Permit for Temporary Service Connection'
-                },
-                'plumbing': {
-                    pages: ['plumbing (front).png', 'plumbing (back).png'],
-                    name: 'Plumbing Permit'
-                },
-                'sanitary': {
-                    pages: ['sanitary (front).png', 'sanitary (back).png'],
-                    name: 'Sanitary Permit'
-                },
-                'sign': {
-                    pages: ['sign (front).png', 'sign (back).png'],
-                    name: 'Sign Permit'
-                },
-                'unified-building': {
-                    pages: ['permit-images/unified-building-front.png', 'permit-images/unified-building-back.png'],
-                    name: 'Unified Building Permit Form'
-                },
-                'cei': {
-                    pages: ['COE inspection.png'],
-                    name: 'CEI Permit'
-                },
-                'construction-logbook': {
-                    pages: ['contruction logbook sheet.png'],
-                    name: 'Construction Logbook Sheet'
-                },
-                'certificate-occupancy': {
-                    pages: ['permit-images/certificate-occupancy-front.png', 'permit-images/certificate-occupancy-back.png'],
-                    name: 'Certificate of Occupancy Unified'
-                },
-                'certificate-completion': {
-                    pages: ['certificate of completion (front).png', 'certificate of completion (back).png'],
-                    name: 'Certificate of Completion'
-                },
-                'certificate-completion-electrical': {
-                    pages: ['COE electrical works.png'],
-                    name: 'Certificate of Completion (Electrical Works)'
+            
+            var adminLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
+            var userType = sessionStorage.getItem('userType');
+            
+            console.log('🔍 Admin Dashboard loading...');
+            
+            if (!adminLoggedIn && userType !== 'admin') {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // ============================================================
+            // DATA CACHE
+            // ============================================================
+            var cachedApps = [];
+            var cachedPermits = [];
+            var cachedUsers = [];
+            var cachedActiveUsers = [];
+
+            // ============================================================
+            // LOAD DATA FROM FIRESTORE
+            // ============================================================
+            async function loadAllData() {
+                try {
+                    // Load applications
+                    var appsSnap = await db.collection("applications")
+                        .orderBy("createdAt", "desc")
+                        .get();
+                    cachedApps = [];
+                    appsSnap.forEach(function(doc) {
+                        cachedApps.push({ id: doc.id, ...doc.data() });
+                    });
+
+                    // Load permits
+                    var permitsSnap = await db.collection("permits")
+                        .orderBy("createdAt", "desc")
+                        .get();
+                    cachedPermits = [];
+                    permitsSnap.forEach(function(doc) {
+                        cachedPermits.push({ id: doc.id, ...doc.data() });
+                    });
+
+                    // Load users
+                    var usersSnap = await db.collection("users")
+                        .where("user_type", "==", "user")
+                        .get();
+                    cachedUsers = [];
+                    usersSnap.forEach(function(doc) {
+                        cachedUsers.push({ id: doc.id, ...doc.data() });
+                    });
+
+                    // Load active users
+                    var activeSnap = await db.collection("active_users")
+                        .where("status", "==", "online")
+                        .get();
+                    cachedActiveUsers = [];
+                    activeSnap.forEach(function(doc) {
+                        cachedActiveUsers.push({ id: doc.id, ...doc.data() });
+                    });
+
+                    console.log('✅ Data loaded:', {
+                        apps: cachedApps.length,
+                        permits: cachedPermits.length,
+                        users: cachedUsers.length,
+                        active: cachedActiveUsers.length
+                    });
+
+                    return true;
+                } catch (err) {
+                    console.error('Error loading data:', err);
+                    return false;
                 }
-            };
+            }
 
             // ============================================================
             // TOAST NOTIFICATIONS
@@ -1796,495 +1061,13 @@
             }
 
             // ============================================================
-            // FORMAT TIME
-            // ============================================================
-            function formatTime(date) {
-                var hours = date.getHours();
-                var minutes = String(date.getMinutes()).padStart(2, '0');
-                var seconds = String(date.getSeconds()).padStart(2, '0');
-                var ampm = hours >= 12 ? 'PM' : 'AM';
-                hours = hours % 12 || 12;
-                return hours + ':' + minutes + ':' + seconds + ' ' + ampm;
-            }
-
-            // ============================================================
-            // FORMAT DATE & TIME FOR NOTIFICATIONS
-            // ============================================================
-            function formatDateTime(date) {
-                var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-                var month = months[date.getMonth()];
-                var day = date.getDate();
-                var year = date.getFullYear();
-                var hours = date.getHours();
-                var minutes = String(date.getMinutes()).padStart(2, '0');
-                var ampm = hours >= 12 ? 'PM' : 'AM';
-                hours = hours % 12 || 12;
-                return month + ' ' + day + ', ' + year + ' · ' + hours + ':' + minutes + ' ' + ampm;
-            }
-
-            // ============================================================
-            // DATA ACCESS - localStorage
-            // ============================================================
-            function getApplications() {
-                return JSON.parse(localStorage.getItem('userApplications') || '[]');
-            }
-            function setApplications(apps) {
-                localStorage.setItem('userApplications', JSON.stringify(apps));
-            }
-            function getPermits() {
-                return JSON.parse(localStorage.getItem('userPermits') || '[]');
-            }
-            function setPermits(permits) {
-                localStorage.setItem('userPermits', JSON.stringify(permits));
-            }
-            function getNotifications() {
-                return JSON.parse(localStorage.getItem('userNotifications') || '[]');
-            }
-            function setNotifications(notifs) {
-                localStorage.setItem('userNotifications', JSON.stringify(notifs));
-            }
-            function getActiveUsers() {
-                return JSON.parse(localStorage.getItem('activeUsers') || '[]');
-            }
-            function setActiveUsers(users) {
-                localStorage.setItem('activeUsers', JSON.stringify(users));
-            }
-
-            // ============================================================
-            // REVIEW MODAL STATE
-            // ============================================================
-            var reviewAppId = null;
-            var reviewCurrentPage = 0;
-            var reviewTotalPages = 1;
-            var reviewFieldsData = [];
-
-            // ============================================================
-            // GENERATE PERMIT NUMBER - DATE ONLY (YYYY-MM-DD)
-            // ============================================================
-            function generatePermitNo(date) {
-                var d = date || new Date();
-                var year = d.getFullYear();
-                var month = String(d.getMonth() + 1).padStart(2, '0');
-                var day = String(d.getDate()).padStart(2, '0');
-                return year + '-' + month + '-' + day;
-            }
-
-            // ============================================================
-            // REVIEW FUNCTIONS
-            // ============================================================
-            window.reviewApplication = function(appId) {
-                var apps = getApplications();
-                var app = null;
-                for (var i = 0; i < apps.length; i++) {
-                    if (apps[i].appId === appId) {
-                        app = apps[i];
-                        break;
-                    }
-                }
-                if (!app) {
-                    showToast('Application not found', 'error');
-                    return;
-                }
-
-                reviewAppId = appId;
-                reviewCurrentPage = 0;
-
-                // Set applicant info
-                document.getElementById('reviewApplicant').textContent = app.applicant || '—';
-                document.getElementById('reviewEmail').textContent = app.email || '—';
-                document.getElementById('reviewType').textContent = app.type || '—';
-                document.getElementById('reviewDate').textContent = app.dateFiled || '—';
-                document.getElementById('reviewStatus').textContent = app.status || '—';
-                document.getElementById('reviewAppId').textContent = app.appId || '—';
-                document.getElementById('reviewModalTitle').textContent = 'Review: ' + (app.type || 'Permit');
-
-                // Get fields data from application
-                reviewFieldsData = app.fields || [];
-
-                // Determine permit type for images
-                var permitType = app.permitType || 'architectural';
-                var permitData = permitImages[permitType];
-
-                if (!permitData || !permitData.pages || permitData.pages.length === 0) {
-                    showToast('No images found for this permit type', 'warning');
-                    permitData = { pages: ['placeholder.png'], name: 'Permit Form' };
-                }
-
-                reviewTotalPages = permitData.pages.length;
-
-                // Load first page
-                loadReviewPage(0);
-
-                // Open modal
-                document.getElementById('reviewModal').classList.add('active');
-                document.body.style.overflow = 'hidden';
-
-                // Update navigation buttons
-                updateReviewNav();
-            };
-
-            function loadReviewPage(pageIndex) {
-                var app = null;
-                var apps = getApplications();
-                for (var i = 0; i < apps.length; i++) {
-                    if (apps[i].appId === reviewAppId) {
-                        app = apps[i];
-                        break;
-                    }
-                }
-                if (!app) return;
-
-                var permitType = app.permitType || 'architectural';
-                var permitData = permitImages[permitType];
-
-                if (!permitData || !permitData.pages) {
-                    permitData = { pages: ['placeholder.png'] };
-                }
-
-                if (pageIndex >= 0 && pageIndex < permitData.pages.length) {
-                    reviewCurrentPage = pageIndex;
-
-                    // Load image
-                    var img = document.getElementById('reviewPermitImage');
-                    img.src = permitData.pages[pageIndex];
-                    img.alt = (permitData.name || 'Permit') + ' - Page ' + (pageIndex + 1);
-
-                    // Render fields
-                    renderReviewFields(app, pageIndex);
-
-                    // Update indicator
-                    document.getElementById('reviewPageIndicator').textContent = 'Page ' + (pageIndex + 1) + ' / ' + permitData.pages.length;
-
-                    // Update dots
-                    var dotsHtml = '';
-                    for (var i = 0; i < permitData.pages.length; i++) {
-                        dotsHtml += '<button class="review-page-dot ' + (i === pageIndex ? 'active' : '') + '" onclick="reviewGoToPage(' + i + ')"></button>';
-                    }
-                    document.getElementById('reviewPageDots').innerHTML = dotsHtml;
-
-                    updateReviewNav();
-                }
-            }
-
-            function renderReviewFields(app, pageIndex) {
-                var overlay = document.getElementById('reviewFieldOverlay');
-                overlay.innerHTML = '';
-
-                // Get fields for this page
-                var pageFields = [];
-                if (app.fields && Array.isArray(app.fields)) {
-                    for (var i = 0; i < app.fields.length; i++) {
-                        var f = app.fields[i];
-                        if (f.page === undefined || f.page === pageIndex) {
-                            pageFields.push(f);
-                        }
-                    }
-                }
-
-                if (pageFields.length === 0) {
-                    // Show "No fields" indicator
-                    var emptyMsg = document.createElement('div');
-                    emptyMsg.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#999;font-size:1.2rem;pointer-events:none;';
-                    emptyMsg.textContent = '📝 No fields added on this page';
-                    overlay.appendChild(emptyMsg);
-                    return;
-                }
-
-                for (var i = 0; i < pageFields.length; i++) {
-                    var field = pageFields[i];
-                    var div = document.createElement('div');
-                    div.className = 'review-field' + (field.text && field.text.trim() ? '' : ' empty');
-                    div.style.left = (field.x || 0) + '%';
-                    div.style.top = (field.y || 0) + '%';
-                    div.textContent = field.text || '(empty)';
-                    overlay.appendChild(div);
-                }
-            }
-
-            function updateReviewNav() {
-                document.getElementById('reviewPrevBtn').disabled = (reviewCurrentPage === 0);
-                document.getElementById('reviewNextBtn').disabled = (reviewCurrentPage >= reviewTotalPages - 1);
-            }
-
-            window.reviewChangePage = function(direction) {
-                var newPage = reviewCurrentPage + direction;
-                if (newPage >= 0 && newPage < reviewTotalPages) {
-                    loadReviewPage(newPage);
-                }
-            };
-
-            window.reviewGoToPage = function(pageIndex) {
-                if (pageIndex >= 0 && pageIndex < reviewTotalPages) {
-                    loadReviewPage(pageIndex);
-                }
-            };
-
-            window.closeReviewModal = function() {
-                document.getElementById('reviewModal').classList.remove('active');
-                document.body.style.overflow = 'auto';
-                reviewAppId = null;
-            };
-
-            // ============================================================
-            // REVIEW ACTIONS
-            // ============================================================
-            window.reviewApproveApplication = function() {
-                if (!reviewAppId) {
-                    showToast('No application selected', 'error');
-                    return;
-                }
-                if (!confirm('Are you sure you want to APPROVE this application?')) return;
-                adminApproveApplication(reviewAppId);
-                closeReviewModal();
-            };
-
-            window.reviewRejectApplication = function() {
-                if (!reviewAppId) {
-                    showToast('No application selected', 'error');
-                    return;
-                }
-                if (!confirm('Are you sure you want to REJECT this application?')) return;
-                adminRejectApplication(reviewAppId);
-                closeReviewModal();
-            };
-
-            window.reviewCancelApplication = function() {
-                if (!reviewAppId) {
-                    showToast('No application selected', 'error');
-                    return;
-                }
-                if (!confirm('Are you sure you want to CANCEL this application?')) return;
-                adminCancelApplication(reviewAppId);
-                closeReviewModal();
-            };
-
-            // ============================================================
-            // ADMIN ACTIONS - UPDATED WITH PROPER TIMESTAMP
-            // ============================================================
-            window.adminApproveApplication = function(appId) {
-                var apps = getApplications();
-                var appIndex = -1;
-                for (var i = 0; i < apps.length; i++) {
-                    if (apps[i].appId === appId) {
-                        appIndex = i;
-                        break;
-                    }
-                }
-                if (appIndex === -1) {
-                    showToast('Application not found', 'error');
-                    return;
-                }
-
-                var app = apps[appIndex];
-                if (app.status === 'Approved') {
-                    showToast('Application is already approved', 'warning');
-                    return;
-                }
-
-                apps[appIndex].status = 'Approved';
-                setApplications(apps);
-
-                var permits = getPermits();
-                var now = new Date();
-                var timestamp = now.toISOString();
-                var permitNo = generatePermitNo(now);
-                var today = now.toISOString().split('T')[0];
-                var expiryDate = new Date(now);
-                expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-                var expiryDateStr = expiryDate.toISOString().split('T')[0];
-
-                // ===== FIND AND UPDATE THE EXISTING PENDING PERMIT =====
-                var permitIndex = -1;
-                for (var i = 0; i < permits.length; i++) {
-                    if (permits[i].appId === appId && permits[i].isPending === true) {
-                        permitIndex = i;
-                        break;
-                    }
-                }
-
-                if (permitIndex !== -1) {
-                    permits[permitIndex].permitNo = permitNo;
-                    permits[permitIndex].dateIssued = today;
-                    permits[permitIndex].expiryDate = expiryDateStr;
-                    permits[permitIndex].status = 'Active';
-                    permits[permitIndex].isPending = false;
-                    permits[permitIndex].archived = false;
-                    console.log('✅ Updated pending permit to active:', permits[permitIndex]);
-                } else {
-                    var newPermit = {
-                        permitNo: permitNo,
-                        type: app.type,
-                        dateIssued: today,
-                        expiryDate: expiryDateStr,
-                        status: 'Active',
-                        applicant: app.applicant,
-                        email: app.email || 'no-email@provided.com',
-                        appId: appId,
-                        isPending: false,
-                        archived: false
-                    };
-                    permits.unshift(newPermit);
-                    console.log('✅ Created new permit (no pending found):', newPermit);
-                }
-
-                setPermits(permits);
-
-                var nowFormatted = formatDateTime(now);
-                var notifs = getNotifications();
-                notifs.unshift({
-                    id: Date.now(),
-                    icon: 'green',
-                    iconClass: 'fa-check-circle',
-                    message: '<strong>' + app.type + ' #' + permitNo + '</strong> has been approved by admin!',
-                    time: nowFormatted,
-                    timestamp: timestamp,
-                    unread: true
-                });
-                setNotifications(notifs);
-
-                showToast('✅ ' + app.type + ' application approved! Permit #' + permitNo + ' created.', 'success');
-                refreshAll();
-            };
-
-            window.adminRejectApplication = function(appId) {
-                var apps = getApplications();
-                var appIndex = -1;
-                for (var i = 0; i < apps.length; i++) {
-                    if (apps[i].appId === appId) {
-                        appIndex = i;
-                        break;
-                    }
-                }
-                if (appIndex === -1) {
-                    showToast('Application not found', 'error');
-                    return;
-                }
-
-                var app = apps[appIndex];
-                apps[appIndex].status = 'Rejected';
-                setApplications(apps);
-
-                var now = new Date();
-                var timestamp = now.toISOString();
-                var nowFormatted = formatDateTime(now);
-                var notifs = getNotifications();
-                notifs.unshift({
-                    id: Date.now(),
-                    icon: 'red',
-                    iconClass: 'fa-times-circle',
-                    message: '<strong>' + app.type + '</strong> application has been rejected by admin.',
-                    time: nowFormatted,
-                    timestamp: timestamp,
-                    unread: true
-                });
-                setNotifications(notifs);
-
-                showToast('❌ ' + app.type + ' application rejected.', 'error');
-                refreshAll();
-            };
-
-            window.adminCancelApplication = function(appId) {
-                var apps = getApplications();
-                var appIndex = -1;
-                for (var i = 0; i < apps.length; i++) {
-                    if (apps[i].appId === appId) {
-                        appIndex = i;
-                        break;
-                    }
-                }
-                if (appIndex === -1) {
-                    showToast('Application not found', 'error');
-                    return;
-                }
-
-                var app = apps[appIndex];
-                apps[appIndex].status = 'Cancelled';
-                setApplications(apps);
-
-                var now = new Date();
-                var timestamp = now.toISOString();
-                var nowFormatted = formatDateTime(now);
-                var notifs = getNotifications();
-                notifs.unshift({
-                    id: Date.now(),
-                    icon: 'orange',
-                    iconClass: 'fa-ban',
-                    message: '<strong>' + app.type + '</strong> application has been cancelled by admin.',
-                    time: nowFormatted,
-                    timestamp: timestamp,
-                    unread: true
-                });
-                setNotifications(notifs);
-
-                showToast('🚫 ' + app.type + ' application cancelled.', 'warning');
-                refreshAll();
-            };
-
-            // ============================================================
-            // RENDER PERMITS - With "All Types" Dropdown Filter
-            // ============================================================
-            function renderPermits() {
-                var permits = getPermits();
-                var tbody = document.getElementById('permitsTableBody');
-                var searchTerm = document.getElementById('searchPermit').value.toLowerCase();
-                var typeFilter = document.getElementById('permitTypeFilter').value;
-                var statusFilter = document.getElementById('filterStatus').value;
-
-                var filtered = permits.filter(function(p) {
-                    if (p.archived === true) return false;
-                    
-                    // Type filter
-                    if (typeFilter && p.type !== typeFilter) return false;
-                    
-                    // Status filter
-                    if (statusFilter && p.status !== statusFilter) return false;
-                    
-                    // Search filter
-                    if (searchTerm) {
-                        var match = p.permitNo.toLowerCase().indexOf(searchTerm) !== -1 || 
-                                   (p.applicant && p.applicant.toLowerCase().indexOf(searchTerm) !== -1);
-                        if (!match) return false;
-                    }
-                    
-                    return true;
-                });
-
-                if (filtered.length === 0) {
-                    tbody.innerHTML = `
-                        <tr><td colspan="6" style="text-align:center;padding:1.5rem;color:#755a5a;">
-                            <i class="fas fa-search" style="display:block;font-size:1.5rem;margin-bottom:0.5rem;"></i>
-                            No permits found
-                        </td></tr>
-                    `;
-                    return;
-                }
-
-                var html = '';
-                filtered.forEach(function(p) {
-                    var cls = p.status === 'Active' || p.status === 'Approved' ? 'approved' :
-                               p.status === 'Pending' ? 'pending' : 'cancelled';
-                    html += `
-                        <tr>
-                            <td><strong>${p.permitNo}</strong></td>
-                            <td>${p.applicant}</td>
-                            <td>${p.type}</td>
-                            <td>${p.dateIssued || 'N/A'}</td>
-                            <td>${p.expiryDate || 'N/A'}</td>
-                            <td><span class="status-badge ${cls}">${p.status || 'Pending'}</span></td>
-                        </tr>
-                    `;
-                });
-                tbody.innerHTML = html;
-            }
-
-            // ============================================================
             // RENDER DASHBOARD
             // ============================================================
             function renderDashboard() {
-                var apps = getApplications();
-                var permits = getPermits();
-                var users = getUsersFromApps();
-                var activeUsers = getActiveUsers();
+                var apps = cachedApps;
+                var permits = cachedPermits;
+                var users = cachedUsers;
+                var activeUsers = cachedActiveUsers;
 
                 var totalPermits = permits.length;
                 var pendingApps = 0;
@@ -2319,44 +1102,25 @@
                     var action = app.status === 'Pending' ? 'Filed application' : 
                                 app.status === 'Approved' ? 'Approved' : 
                                 app.status === 'Rejected' ? 'Rejected' : 'Cancelled';
-                    
-                    var cleanPermitName = app.type;
-                    cleanPermitName = cleanPermitName.replace(/#APP-\d{3}/g, '');
-                    cleanPermitName = cleanPermitName.replace(/#APP-\d{4}-\d{3}/g, '');
-                    cleanPermitName = cleanPermitName.replace(/-\d{3,}$/g, '');
-                    cleanPermitName = cleanPermitName.replace(/#\d{3,}$/g, '');
-                    cleanPermitName = cleanPermitName.trim();
-                    
-                    var dateParts = app.dateFiled ? app.dateFiled.split(' ') : ['', ''];
-                    var dateOnly = dateParts[0] || app.dateFiled || '';
-                    
+                    var cleanPermitName = app.type || 'Permit';
+                    var dateStr = app.dateFiled || (app.createdAt?.toDate?.()?.toLocaleDateString() || '');
                     allActivity.push({
-                        user: app.applicant,
+                        user: app.applicant || 'Unknown',
                         action: action,
                         item: cleanPermitName,
-                        date: dateOnly
+                        date: dateStr
                     });
                 }
 
                 for (var i = 0; i < permits.length; i++) {
                     var p = permits[i];
-                    var cleanPermitName = p.type;
-                    cleanPermitName = cleanPermitName.replace(/#APP-\d{3}/g, '');
-                    cleanPermitName = cleanPermitName.replace(/#APP-\d{4}-\d{3}/g, '');
-                    cleanPermitName = cleanPermitName.replace(/-\d{3,}$/g, '');
-                    cleanPermitName = cleanPermitName.replace(/#\d{3,}$/g, '');
-                    cleanPermitName = cleanPermitName.replace(/#\d{4}-\d{2}-\d{2}/g, '');
-                    cleanPermitName = cleanPermitName.replace(/\s+#\d{4}-\d{2}-\d{2}/g, '');
-                    cleanPermitName = cleanPermitName.trim();
-                    
-                    var dateParts = p.dateIssued ? p.dateIssued.split(' ') : ['', ''];
-                    var dateOnly = dateParts[0] || p.dateIssued || '';
-                    
+                    var cleanPermitName = p.type || 'Permit';
+                    var dateStr = p.dateIssued || (p.createdAt?.toDate?.()?.toLocaleDateString() || '');
                     allActivity.push({
-                        user: p.applicant,
+                        user: p.applicant || 'Unknown',
                         action: 'Issued permit',
                         item: cleanPermitName,
-                        date: dateOnly
+                        date: dateStr
                     });
                 }
 
@@ -2369,10 +1133,7 @@
                 if (allActivity.length === 0) {
                     activityBody.innerHTML = `
                         <tr><td colspan="4" style="text-align:center;padding:1.5rem;">
-                            <div class="empty-state" style="padding:0.3rem;">
-                                <i class="fas fa-clock" style="font-size:1.5rem;"></i>
-                                <h3>No Recent Activity</h3>
-                            </div>
+                            <div class="empty-state"><i class="fas fa-clock"></i><h3>No Recent Activity</h3></div>
                         </td></tr>
                     `;
                 } else {
@@ -2386,63 +1147,14 @@
                 }
             }
 
-            function getUsersFromApps() {
-                var apps = getApplications();
-                var permits = getPermits();
-                var userMap = {};
-
-                for (var i = 0; i < apps.length; i++) {
-                    var app = apps[i];
-                    if (app.applicant && !userMap[app.applicant]) {
-                        userMap[app.applicant] = {
-                            name: app.applicant,
-                            email: app.email || 'no-email@provided.com',
-                            joined: app.dateFiled || '2026-01-01',
-                            permits: 0,
-                            applications: 0
-                        };
-                    }
-                }
-
-                for (var i = 0; i < permits.length; i++) {
-                    var permit = permits[i];
-                    if (permit.applicant && !userMap[permit.applicant]) {
-                        userMap[permit.applicant] = {
-                            name: permit.applicant,
-                            email: permit.email || 'no-email@provided.com',
-                            joined: permit.dateIssued || '2026-01-01',
-                            permits: 0,
-                            applications: 0
-                        };
-                    }
-                    if (userMap[permit.applicant]) {
-                        userMap[permit.applicant].permits++;
-                    }
-                }
-
-                for (var i = 0; i < apps.length; i++) {
-                    var app = apps[i];
-                    if (userMap[app.applicant]) {
-                        userMap[app.applicant].applications++;
-                    }
-                }
-
-                var result = [];
-                for (var key in userMap) {
-                    result.push(userMap[key]);
-                }
-                result.sort(function(a, b) { return a.name.localeCompare(b.name); });
-                return result;
-            }
-
             // ============================================================
             // RENDER USERS
             // ============================================================
             function renderUsers(searchTerm) {
-                var allUsers = getUsersFromApps();
+                var allUsers = cachedUsers;
+                var activeUsers = cachedActiveUsers;
                 var tbody = document.getElementById('usersTableBody');
                 var count = document.getElementById('userCount');
-                var activeUsers = getActiveUsers();
 
                 var filtered = allUsers;
                 if (searchTerm && searchTerm.trim()) {
@@ -2450,7 +1162,7 @@
                     filtered = [];
                     for (var i = 0; i < allUsers.length; i++) {
                         var u = allUsers[i];
-                        if (u.name.toLowerCase().indexOf(term) !== -1 || u.email.toLowerCase().indexOf(term) !== -1) {
+                        if ((u.name || '').toLowerCase().indexOf(term) !== -1 || (u.email || '').toLowerCase().indexOf(term) !== -1) {
                             filtered.push(u);
                         }
                     }
@@ -2461,10 +1173,7 @@
                 if (filtered.length === 0) {
                     tbody.innerHTML = `
                         <tr><td colspan="5" style="text-align:center;padding:1.5rem;">
-                            <div class="empty-state" style="padding:0.3rem;">
-                                <i class="fas fa-search" style="font-size:1.2rem;"></i>
-                                <h3>${allUsers.length === 0 ? 'No Users' : 'No Matches'}</h3>
-                            </div>
+                            <div class="empty-state"><i class="fas fa-search"></i><h3>No Users Found</h3></div>
                         </td></tr>
                     `;
                     return;
@@ -2473,25 +1182,24 @@
                 var html = '';
                 for (var i = 0; i < filtered.length; i++) {
                     var user = filtered[i];
-                    var initials = user.name.split(' ').map(function(n) { return n[0]; }).join('').toUpperCase();
-                    var status = user.permits > 0 ? 'Active' : 'Inactive';
+                    var initials = (user.name || 'U').split(' ').map(function(n) { return n[0]; }).join('').toUpperCase().slice(0,2);
                     var isOnline = false;
                     for (var j = 0; j < activeUsers.length; j++) {
-                        if (activeUsers[j].name === user.name) { isOnline = true; break; }
+                        if (activeUsers[j].uid === user.uid) { isOnline = true; break; }
                     }
                     html += `
                         <tr>
                             <td>
                                 <div style="display:flex;align-items:center;gap:8px;">
                                     <div class="user-avatar-sm">${initials}</div>
-                                    ${user.name}
+                                    ${user.name || 'Unknown'}
                                     ${isOnline ? '<span style="color:#4ade80;font-size:0.5rem;"><i class="fas fa-circle"></i></span>' : ''}
                                 </div>
                             </td>
-                            <td>${user.email}</td>
-                            <td>${user.permits}</td>
-                            <td><span class="status-badge ${status === 'Active' ? 'approved' : 'cancelled'}">${status}</span></td>
-                            <td>${user.joined || 'N/A'}</td>
+                            <td>${user.email || 'N/A'}</td>
+                            <td>0</td>
+                            <td><span class="status-badge ${isOnline ? 'approved' : 'cancelled'}">${isOnline ? 'Active' : 'Offline'}</span></td>
+                            <td>${user.createdAt?.toDate?.()?.toLocaleDateString() || 'N/A'}</td>
                         </tr>
                     `;
                 }
@@ -2499,24 +1207,68 @@
             }
 
             // ============================================================
-            // SORT VARIABLES
+            // RENDER PERMITS
+            // ============================================================
+            function renderPermits() {
+                var permits = cachedPermits;
+                var tbody = document.getElementById('permitsTableBody');
+                var searchTerm = document.getElementById('searchPermit').value.toLowerCase();
+                var typeFilter = document.getElementById('permitTypeFilter').value;
+                var statusFilter = document.getElementById('filterStatus').value;
+
+                var filtered = permits.filter(function(p) {
+                    if (p.archived === true) return false;
+                    if (typeFilter && p.type !== typeFilter) return false;
+                    if (statusFilter && p.status !== statusFilter) return false;
+                    if (searchTerm) {
+                        var match = (p.permitNo || '').toLowerCase().indexOf(searchTerm) !== -1 || 
+                                   (p.applicant && p.applicant.toLowerCase().indexOf(searchTerm) !== -1);
+                        if (!match) return false;
+                    }
+                    return true;
+                });
+
+                if (filtered.length === 0) {
+                    tbody.innerHTML = `
+                        <tr><td colspan="6" style="text-align:center;padding:1.5rem;color:#755a5a;">
+                            <i class="fas fa-search" style="display:block;font-size:1.5rem;margin-bottom:0.5rem;"></i>
+                            No permits found
+                        </td></tr>
+                    `;
+                    return;
+                }
+
+                var html = '';
+                filtered.slice(0, 100).forEach(function(p) {
+                    var cls = p.status === 'Active' || p.status === 'Approved' ? 'approved' :
+                               p.status === 'Pending' ? 'pending' : 'cancelled';
+                    html += `
+                        <tr>
+                            <td><strong>${p.permitNo || p.id?.slice(0,8) || 'N/A'}</strong></td>
+                            <td>${p.applicant || 'N/A'}</td>
+                            <td>${p.type || 'N/A'}</td>
+                            <td>${p.dateIssued || 'N/A'}</td>
+                            <td>${p.expiryDate || 'N/A'}</td>
+                            <td><span class="status-badge ${cls}">${p.status || 'Pending'}</span></td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = html;
+            }
+
+            // ============================================================
+            // SORT APPLICATIONS
             // ============================================================
             var sortField = 'date';
             var sortDirection = 'desc';
 
-            // ============================================================
-            // SORT APPLICATIONS FUNCTION
-            // ============================================================
             window.sortApplications = function(field) {
-                // Toggle direction if same field
                 if (sortField === field) {
                     sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
                 } else {
                     sortField = field;
                     sortDirection = 'desc';
                 }
-                
-                // Update button icons
                 document.querySelectorAll('.sort-btn').forEach(function(btn) {
                     btn.classList.remove('asc', 'desc');
                     var btnField = btn.getAttribute('onclick');
@@ -2524,60 +1276,46 @@
                         btn.classList.add(sortDirection);
                     }
                 });
-                
                 renderApplications();
             };
 
             // ============================================================
-            // RENDER APPLICATIONS - Sorted with Sort Icons
+            // RENDER APPLICATIONS
             // ============================================================
             function renderApplications() {
-                var apps = getApplications();
+                var apps = cachedApps;
                 var tbody = document.getElementById('applicationsTableBody');
 
                 if (apps.length === 0) {
                     tbody.innerHTML = `
                         <tr><td colspan="5" style="text-align:center;padding:1.5rem;">
-                            <div class="empty-state" style="padding:0.3rem;">
-                                <i class="fas fa-inbox" style="font-size:1.2rem;"></i>
-                                <h3>No Applications</h3>
-                                <p>Users haven't filed any permits yet</p>
-                            </div>
+                            <div class="empty-state"><i class="fas fa-inbox"></i><h3>No Applications</h3></div>
                         </td></tr>
                     `;
                     return;
                 }
 
-                // Sort function
                 function sortApps(a, b) {
                     var valA, valB;
-                    
                     if (sortField === 'date') {
-                        valA = new Date(a.dateFiled || 0);
-                        valB = new Date(b.dateFiled || 0);
+                        valA = new Date(a.dateFiled || a.createdAt?.toDate?.() || 0);
+                        valB = new Date(b.dateFiled || b.createdAt?.toDate?.() || 0);
                     } else if (sortField === 'status') {
-                        var statusOrder = {
-                            'Approved': 0,
-                            'Cancelled': 1,
-                            'Rejected': 2,
-                            'Pending': 3
-                        };
+                        var statusOrder = { 'Approved': 0, 'Cancelled': 1, 'Rejected': 2, 'Pending': 3 };
                         valA = statusOrder[a.status] !== undefined ? statusOrder[a.status] : 4;
                         valB = statusOrder[b.status] !== undefined ? statusOrder[b.status] : 4;
                     } else {
                         valA = a[sortField] || '';
                         valB = b[sortField] || '';
                     }
-                    
                     if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
                     if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
                     return 0;
                 }
 
-                // Create copy and sort
                 var sortedApps = apps.slice().sort(sortApps);
-
                 var html = '';
+
                 for (var i = 0; i < sortedApps.length; i++) {
                     var app = sortedApps[i];
                     var cls = app.status === 'Approved' ? 'approved' :
@@ -2587,47 +1325,49 @@
                     var actionButtons = '';
                     if (app.status === 'Pending') {
                         actionButtons = `
-                            <button class="btn-view" onclick="reviewApplication('${app.appId}')" style="background:#0d6efd;color:white;padding:0.15rem 0.6rem;border:none;border-radius:12px;font-size:0.6rem;font-weight:600;cursor:pointer;transition:0.2s;">
+                            <button class="btn-view" onclick="reviewApplication('${app.id}')" style="background:#0d6efd;color:white;padding:0.15rem 0.6rem;border:none;border-radius:12px;font-size:0.6rem;font-weight:600;cursor:pointer;transition:0.2s;">
                                 <i class="fas fa-eye"></i> Review
                             </button>
-                            <button class="btn-approve" onclick="adminApproveApplication('${app.appId}')">
+                            <button class="btn-approve" onclick="adminApproveApplication('${app.id}')">
                                 <i class="fas fa-check"></i> Approve
                             </button>
-                            <button class="btn-reject" onclick="adminRejectApplication('${app.appId}')">
+                            <button class="btn-reject" onclick="adminRejectApplication('${app.id}')">
                                 <i class="fas fa-times"></i> Reject
                             </button>
-                            <button class="btn-cancel" onclick="adminCancelApplication('${app.appId}')">
+                            <button class="btn-cancel" onclick="adminCancelApplication('${app.id}')">
                                 <i class="fas fa-ban"></i> Cancel
                             </button>
                         `;
                     } else if (app.status === 'Approved') {
                         actionButtons = `
-                            <button class="btn-view" onclick="reviewApplication('${app.appId}')" style="background:#0d6efd;color:white;padding:0.15rem 0.6rem;border:none;border-radius:12px;font-size:0.6rem;font-weight:600;cursor:pointer;transition:0.2s;">
+                            <button class="btn-view" onclick="reviewApplication('${app.id}')" style="background:#0d6efd;color:white;padding:0.15rem 0.6rem;border:none;border-radius:12px;font-size:0.6rem;font-weight:600;cursor:pointer;transition:0.2s;">
                                 <i class="fas fa-eye"></i> Review
                             </button>
-                            <button class="btn-view" style="background:#28a745;" onclick="viewApplication('${app.appId}')">
+                            <button class="btn-view" style="background:#28a745;" onclick="viewApplication('${app.id}')">
                                 <i class="fas fa-check-circle"></i> Approved
                             </button>
-                            <button class="btn-cancel" onclick="adminCancelApplication('${app.appId}')">
+                            <button class="btn-cancel" onclick="adminCancelApplication('${app.id}')">
                                 <i class="fas fa-ban"></i> Cancel
                             </button>
                         `;
                     } else {
                         actionButtons = `
-                            <button class="btn-view" onclick="reviewApplication('${app.appId}')" style="background:#0d6efd;color:white;padding:0.15rem 0.6rem;border:none;border-radius:12px;font-size:0.6rem;font-weight:600;cursor:pointer;transition:0.2s;">
+                            <button class="btn-view" onclick="reviewApplication('${app.id}')" style="background:#0d6efd;color:white;padding:0.15rem 0.6rem;border:none;border-radius:12px;font-size:0.6rem;font-weight:600;cursor:pointer;transition:0.2s;">
                                 <i class="fas fa-eye"></i> Review
                             </button>
-                            <button class="btn-view" onclick="viewApplication('${app.appId}')">
+                            <button class="btn-view" onclick="viewApplication('${app.id}')">
                                 <i class="fas fa-eye"></i> View
                             </button>
                         `;
                     }
 
+                    var dateDisplay = app.dateFiled || app.createdAt?.toDate?.()?.toLocaleDateString() || 'N/A';
+
                     html += `
                         <tr>
-                            <td>${app.applicant}</td>
-                            <td>${app.type}</td>
-                            <td>${app.dateFiled}</td>
+                            <td>${app.applicant || 'Unknown'}</td>
+                            <td>${app.type || 'N/A'}</td>
+                            <td>${dateDisplay}</td>
                             <td><span class="status-badge ${cls}">${app.status || 'Pending'}</span></td>
                             <td class="action-buttons">${actionButtons}</td>
                         </tr>
@@ -2636,16 +1376,17 @@
                 tbody.innerHTML = html;
             }
 
+            // ============================================================
+            // RENDER REPORTS
+            // ============================================================
             function renderReports() {
-                var apps = getApplications();
-                var permits = getPermits();
-                var users = getUsersFromApps();
-                var activeUsers = getActiveUsers();
+                var users = cachedUsers;
+                var activeUsers = cachedActiveUsers;
+                var permits = cachedPermits;
+                var apps = cachedApps;
 
                 var totalPermits = permits.length;
-                var pendingApps = 0;
-                var approvedApps = 0;
-                var cancelledApps = 0;
+                var pendingApps = 0, approvedApps = 0, cancelledApps = 0;
                 for (var i = 0; i < apps.length; i++) {
                     if (apps[i].status === 'Pending') pendingApps++;
                     else if (apps[i].status === 'Approved') approvedApps++;
@@ -2656,7 +1397,7 @@
                     <div class="report-stat">
                         <div class="number">${users.length}</div>
                         <div class="label">👥 Total Users</div>
-                        <div class="sub-label">Registered users with permits</div>
+                        <div class="sub-label">Registered users</div>
                     </div>
                     <div class="report-stat">
                         <div class="number" style="color:#4ade80;">${activeUsers.length}</div>
@@ -2671,7 +1412,7 @@
                     <div class="report-stat">
                         <div class="number" style="color:#e8a317;">${pendingApps}</div>
                         <div class="label">⏳ Pending Approval</div>
-                        <div class="sub-label">Applications waiting for review</div>
+                        <div class="sub-label">Waiting for review</div>
                     </div>
                     <div class="report-stat">
                         <div class="number" style="color:#28a745;">${approvedApps}</div>
@@ -2687,74 +1428,10 @@
             }
 
             // ============================================================
-            // FILTER FUNCTIONS
-            // ============================================================
-            function handleUserSearch() {
-                renderUsers(document.getElementById('searchUser').value);
-            }
-
-            // ============================================================
-            // GLOBAL FUNCTIONS
-            // ============================================================
-            window.viewUser = function(name) {
-                var apps = getApplications().filter(function(a) { return a.applicant === name; });
-                var permits = getPermits().filter(function(p) { return p.applicant === name; });
-                var active = getActiveUsers().some(function(u) { return u.name === name; });
-                showToast('👤 ' + name + '\n' + (active ? '🟢 Active' : '⚪ Inactive') + '\n📄 Apps: ' + apps.length + '\n📋 Permits: ' + permits.length, 'info', 5000);
-            };
-
-            window.viewUserPermits = function(name) {
-                var permits = getPermits().filter(function(p) { return p.applicant === name; });
-                if (permits.length === 0) {
-                    showToast('No permits found for ' + name, 'warning');
-                    return;
-                }
-                var list = '';
-                for (var i = 0; i < permits.length; i++) {
-                    list += permits[i].permitNo + ' - ' + permits[i].type + ' (' + permits[i].status + ')\n';
-                }
-                showToast('📋 ' + name + '\'s Permits:\n' + list, 'info', 5000);
-            };
-
-            window.viewPermit = function(permitNo) {
-                var permit = getPermits().find(function(p) { return p.permitNo === permitNo; });
-                if (permit) {
-                    showToast('📄 #' + permit.permitNo + '\nApplicant: ' + permit.applicant + '\nType: ' + permit.type + '\nStatus: ' + permit.status, 'info');
-                } else {
-                    showToast('Permit not found', 'error');
-                }
-            };
-
-            window.printPermit = function(permitNo) {
-                showToast('🖨️ Printing permit: ' + permitNo, 'success');
-            };
-
-            window.viewApplication = function(appId) {
-                var app = getApplications().find(function(a) { return a.appId === appId; });
-                if (app) {
-                    showToast('📄 ' + app.appId + '\nApplicant: ' + app.applicant + '\nType: ' + app.type + '\nStatus: ' + app.status, 'info');
-                } else {
-                    showToast('Application not found', 'error');
-                }
-            };
-
-            // ============================================================
-            // REFRESH ALL
-            // ============================================================
-            function refreshAll() {
-                renderDashboard();
-                renderUsers(document.getElementById('searchUser')?.value || '');
-                renderPermits();
-                renderApplications();
-                renderReports();
-                renderActiveUsers();
-            }
-
-            // ============================================================
             // RENDER ACTIVE USERS
             // ============================================================
             function renderActiveUsers() {
-                var users = getActiveUsers();
+                var users = cachedActiveUsers;
                 var container = document.getElementById('activeUsersList');
                 var countBadge = document.getElementById('activeUserCount');
 
@@ -2773,11 +1450,11 @@
                 var html = '';
                 for (var i = 0; i < users.length; i++) {
                     var user = users[i];
-                    var initials = user.initials || user.name.split(' ').map(function(n) { return n[0]; }).join('').toUpperCase();
+                    var initials = user.initials || (user.name || 'U').split(' ').map(function(n) { return n[0]; }).join('').toUpperCase().slice(0,2);
                     html += `
-                        <div class="active-user-item" title="${user.name} (${user.email})">
+                        <div class="active-user-item" title="${user.name || 'Unknown'} (${user.email || ''})">
                             <div class="user-avatar-mini">${initials}</div>
-                            <span class="user-name-mini">${user.name}</span>
+                            <span class="user-name-mini">${user.name || 'Unknown'}</span>
                             <span class="status-dot ${user.status === 'online' ? 'online' : 'idle'}"></span>
                         </div>
                     `;
@@ -2785,14 +1462,320 @@
                 container.innerHTML = html;
             }
 
+            function handleUserSearch() {
+                renderUsers(document.getElementById('searchUser').value);
+            }
+
             // ============================================================
-            // UPDATE TIME
+            // ADMIN ACTIONS
             // ============================================================
+            window.adminApproveApplication = async function(appId) {
+                if (!confirm('Approve this application?')) return;
+                try {
+                    var appDoc = await db.collection("applications").doc(appId).get();
+                    var appData = appDoc.data();
+                    if (!appData) { showToast('Application not found', 'error'); return; }
+
+                    await db.collection("applications").doc(appId).update({
+                        status: "Approved",
+                        reviewedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        reviewedBy: "admin"
+                    });
+
+                    var now = new Date();
+                    var permitNo = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+                    var today = now.toISOString().split('T')[0];
+                    var expiryDate = new Date(now);
+                    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+                    var expiryDateStr = expiryDate.toISOString().split('T')[0];
+
+                    await db.collection("permits").add({
+                        permitNo: permitNo,
+                        type: appData.type || 'Building Permit',
+                        applicant: appData.applicant || 'Unknown',
+                        email: appData.email || '',
+                        uid: appData.uid || '',
+                        appId: appId,
+                        status: "Active",
+                        dateIssued: today,
+                        expiryDate: expiryDateStr,
+                        isPending: false,
+                        archived: false,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    if (appData.uid) {
+                        await db.collection("notifications").add({
+                            uid: appData.uid,
+                            icon: 'green',
+                            iconClass: 'fa-check-circle',
+                            message: `<strong>${appData.type || 'Permit'}</strong> has been approved by admin!`,
+                            time: new Date().toLocaleString(),
+                            unread: true,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+
+                    showToast('✅ Application approved!', 'success');
+                    refreshAll();
+
+                } catch (err) {
+                    console.error('Approve error:', err);
+                    showToast('Error: ' + err.message, 'error');
+                }
+            };
+
+            window.adminRejectApplication = async function(appId) {
+                if (!confirm('Reject this application?')) return;
+                try {
+                    var appDoc = await db.collection("applications").doc(appId).get();
+                    var appData = appDoc.data();
+                    if (!appData) { showToast('Application not found', 'error'); return; }
+
+                    await db.collection("applications").doc(appId).update({
+                        status: "Rejected",
+                        reviewedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        reviewedBy: "admin"
+                    });
+
+                    if (appData.uid) {
+                        await db.collection("notifications").add({
+                            uid: appData.uid,
+                            icon: 'red',
+                            iconClass: 'fa-times-circle',
+                            message: `<strong>${appData.type || 'Permit'}</strong> application has been rejected.`,
+                            time: new Date().toLocaleString(),
+                            unread: true,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+
+                    showToast('❌ Application rejected', 'error');
+                    refreshAll();
+
+                } catch (err) {
+                    console.error('Reject error:', err);
+                    showToast('Error: ' + err.message, 'error');
+                }
+            };
+
+            window.adminCancelApplication = async function(appId) {
+                if (!confirm('Cancel this application?')) return;
+                try {
+                    var appDoc = await db.collection("applications").doc(appId).get();
+                    var appData = appDoc.data();
+                    if (!appData) { showToast('Application not found', 'error'); return; }
+
+                    await db.collection("applications").doc(appId).update({
+                        status: "Cancelled",
+                        reviewedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        reviewedBy: "admin"
+                    });
+
+                    if (appData.uid) {
+                        await db.collection("notifications").add({
+                            uid: appData.uid,
+                            icon: 'orange',
+                            iconClass: 'fa-ban',
+                            message: `<strong>${appData.type || 'Permit'}</strong> application has been cancelled.`,
+                            time: new Date().toLocaleString(),
+                            unread: true,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+
+                    showToast('🚫 Application cancelled', 'warning');
+                    refreshAll();
+
+                } catch (err) {
+                    console.error('Cancel error:', err);
+                    showToast('Error: ' + err.message, 'error');
+                }
+            };
+
+            window.viewApplication = function(appId) {
+                var app = null;
+                for (var i = 0; i < cachedApps.length; i++) {
+                    if (cachedApps[i].id === appId) { app = cachedApps[i]; break; }
+                }
+                if (app) {
+                    showToast('📄 ' + (app.appId || app.id) + '\nApplicant: ' + app.applicant + '\nType: ' + app.type + '\nStatus: ' + app.status, 'info');
+                } else {
+                    showToast('Application not found', 'error');
+                }
+            };
+
+            // ============================================================
+            // REVIEW FUNCTIONS
+            // ============================================================
+            var reviewAppId = null;
+            var reviewCurrentPage = 0;
+            var reviewTotalPages = 1;
+
+            window.reviewApplication = function(appId) {
+                var app = null;
+                for (var i = 0; i < cachedApps.length; i++) {
+                    if (cachedApps[i].id === appId) {
+                        app = cachedApps[i];
+                        break;
+                    }
+                }
+                if (!app) {
+                    showToast('Application not found', 'error');
+                    return;
+                }
+
+                reviewAppId = appId;
+                reviewCurrentPage = 0;
+
+                document.getElementById('reviewApplicant').textContent = app.applicant || '—';
+                document.getElementById('reviewEmail').textContent = app.email || '—';
+                document.getElementById('reviewType').textContent = app.type || '—';
+                document.getElementById('reviewDate').textContent = app.dateFiled || app.createdAt?.toDate?.()?.toLocaleDateString() || '—';
+                document.getElementById('reviewStatus').textContent = app.status || '—';
+                document.getElementById('reviewAppId').textContent = app.appId || app.id || '—';
+                document.getElementById('reviewModalTitle').textContent = 'Review: ' + (app.type || 'Permit');
+
+                reviewTotalPages = 1;
+                document.getElementById('reviewModal').classList.add('active');
+                document.body.style.overflow = 'hidden';
+            };
+
+            window.closeReviewModal = function() {
+                document.getElementById('reviewModal').classList.remove('active');
+                document.body.style.overflow = 'auto';
+                reviewAppId = null;
+            };
+
+            window.reviewApproveApplication = function() {
+                if (!reviewAppId) { showToast('No application selected', 'error'); return; }
+                if (!confirm('Approve this application?')) return;
+                adminApproveApplication(reviewAppId);
+                closeReviewModal();
+            };
+
+            window.reviewRejectApplication = function() {
+                if (!reviewAppId) { showToast('No application selected', 'error'); return; }
+                if (!confirm('Reject this application?')) return;
+                adminRejectApplication(reviewAppId);
+                closeReviewModal();
+            };
+
+            window.reviewCancelApplication = function() {
+                if (!reviewAppId) { showToast('No application selected', 'error'); return; }
+                if (!confirm('Cancel this application?')) return;
+                adminCancelApplication(reviewAppId);
+                closeReviewModal();
+            };
+
+            window.reviewChangePage = function(d) {
+                var newPage = reviewCurrentPage + d;
+                if (newPage >= 0 && newPage < reviewTotalPages) {
+                    reviewCurrentPage = newPage;
+                }
+            };
+
+            window.reviewGoToPage = function(page) {
+                if (page >= 0 && page < reviewTotalPages) {
+                    reviewCurrentPage = page;
+                }
+            };
+
+            // ============================================================
+            // REFRESH ALL
+            // ============================================================
+            async function refreshAll() {
+                await loadAllData();
+                renderDashboard();
+                renderUsers(document.getElementById('searchUser')?.value || '');
+                renderPermits();
+                renderApplications();
+                renderReports();
+                renderActiveUsers();
+            }
+
+            // ============================================================
+            // FORMAT TIME
+            // ============================================================
+            function formatTime(date) {
+                var hours = date.getHours();
+                var minutes = String(date.getMinutes()).padStart(2, '0');
+                var seconds = String(date.getSeconds()).padStart(2, '0');
+                var ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12 || 12;
+                return hours + ':' + minutes + ':' + seconds + ' ' + ampm;
+            }
+
             function updateTimeDisplay() {
                 var now = new Date();
                 var timeStr = formatTime(now);
                 document.getElementById('sessionTimeDisplay').textContent = timeStr;
                 document.getElementById('sessionTime').textContent = timeStr;
+            }
+
+            // ============================================================
+            // NAVIGATION - FIXED
+            // ============================================================
+            function initNavigation() {
+                var navLinks = document.querySelectorAll('.sidebar nav a');
+                var pageTitle = document.querySelector('.page-title');
+                var titles = {
+                    dashboard: { icon: 'fa-gauge-high', label: 'Dashboard' },
+                    users: { icon: 'fa-users', label: 'Users' },
+                    permits: { icon: 'fa-file-signature', label: 'Permits' },
+                    applications: { icon: 'fa-clipboard-list', label: 'Applications' },
+                    reports: { icon: 'fa-chart-simple', label: 'Reports' }
+                };
+
+                for (var i = 0; i < navLinks.length; i++) {
+                    var link = navLinks[i];
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        
+                        // Remove active from all links
+                        var allLinks = document.querySelectorAll('.sidebar nav a');
+                        for (var j = 0; j < allLinks.length; j++) {
+                            allLinks[j].classList.remove('active');
+                        }
+                        this.classList.add('active');
+
+                        var pageName = this.getAttribute('data-page');
+                        console.log('🔀 Navigating to:', pageName);
+                        
+                        // Hide all pages
+                        var allPages = document.querySelectorAll('.page');
+                        for (var j = 0; j < allPages.length; j++) {
+                            allPages[j].classList.remove('active');
+                        }
+                        // Show selected page
+                        var target = document.getElementById('page-' + pageName);
+                        if (target) {
+                            target.classList.add('active');
+                        }
+
+                        var info = titles[pageName] || titles.dashboard;
+                        pageTitle.innerHTML = '<i class="fas ' + info.icon + '"></i> ' + info.label;
+
+                        // Refresh data based on page
+                        if (pageName === 'users') {
+                            renderUsers(document.getElementById('searchUser').value || '');
+                        } else if (pageName === 'permits') {
+                            renderPermits();
+                        } else if (pageName === 'applications') {
+                            renderApplications();
+                        } else if (pageName === 'reports') {
+                            renderReports();
+                        } else if (pageName === 'dashboard') {
+                            renderDashboard();
+                        }
+
+                        // Close mobile sidebar
+                        if (window.innerWidth <= 850) {
+                            document.getElementById('sidebar').classList.remove('open');
+                            document.getElementById('sidebarOverlay').classList.remove('active');
+                        }
+                    });
+                }
             }
 
             // ============================================================
@@ -2808,73 +1791,6 @@
             }
 
             // ============================================================
-            // HEARTBEAT
-            // ============================================================
-            function heartbeat() {
-                renderActiveUsers();
-                renderDashboard();
-                renderReports();
-            }
-
-            // ============================================================
-            // NAVIGATION
-            // ============================================================
-            function initNavigation() {
-                var navLinks = document.querySelectorAll('.sidebar nav a');
-                var pages = {
-                    dashboard: document.getElementById('page-dashboard'),
-                    users: document.getElementById('page-users'),
-                    permits: document.getElementById('page-permits'),
-                    applications: document.getElementById('page-applications'),
-                    reports: document.getElementById('page-reports')
-                };
-                var pageTitle = document.querySelector('.page-title');
-                var titles = {
-                    dashboard: { icon: 'fa-gauge-high', label: 'Dashboard' },
-                    users: { icon: 'fa-users', label: 'Users with Permits' },
-                    permits: { icon: 'fa-file-signature', label: 'Permits' },
-                    applications: { icon: 'fa-clipboard-list', label: 'Applications' },
-                    reports: { icon: 'fa-chart-simple', label: 'Reports' }
-                };
-
-                for (var i = 0; i < navLinks.length; i++) {
-                    var link = navLinks[i];
-                    link.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        var allLinks = document.querySelectorAll('.sidebar nav a');
-                        for (var j = 0; j < allLinks.length; j++) {
-                            allLinks[j].classList.remove('active');
-                        }
-                        this.classList.add('active');
-
-                        var pageName = this.getAttribute('data-page');
-                        for (var key in pages) {
-                            if (pages[key]) {
-                                pages[key].classList.toggle('active', key === pageName);
-                            }
-                        }
-
-                        var info = titles[pageName] || titles.dashboard;
-                        pageTitle.innerHTML = '<i class="fas ' + info.icon + '"></i> ' + info.label;
-
-                        if (pageName === 'users') {
-                            renderUsers(document.getElementById('searchUser').value || '');
-                        } else if (pageName === 'permits') {
-                            renderPermits();
-                        } else if (pageName === 'applications') {
-                            renderApplications();
-                        } else if (pageName === 'reports') {
-                            renderReports();
-                        } else if (pageName === 'dashboard') {
-                            renderDashboard();
-                        }
-
-                        closeDropdown();
-                    });
-                }
-            }
-
-            // ============================================================
             // MOBILE SIDEBAR TOGGLE
             // ============================================================
             function initMobileSidebar() {
@@ -2885,50 +1801,61 @@
 
                 function openSidebar() {
                     sidebar.classList.add('open');
-                    overlay.classList.add('active');
+                    if (overlay) overlay.classList.add('active');
                     document.body.style.overflow = 'hidden';
                 }
 
                 function closeSidebar() {
                     sidebar.classList.remove('open');
-                    overlay.classList.remove('active');
+                    if (overlay) overlay.classList.remove('active');
                     document.body.style.overflow = '';
                 }
 
-                if (toggleBtn) {
-                    toggleBtn.addEventListener('click', openSidebar);
-                }
-                if (closeBtn) {
-                    closeBtn.addEventListener('click', closeSidebar);
-                }
-                if (overlay) {
-                    overlay.addEventListener('click', closeSidebar);
-                }
+                if (toggleBtn) toggleBtn.addEventListener('click', openSidebar);
+                if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+                if (overlay) overlay.addEventListener('click', closeSidebar);
 
                 window.addEventListener('resize', function() {
-                    if (window.innerWidth > 850) {
-                        closeSidebar();
-                    }
+                    if (window.innerWidth > 850) closeSidebar();
                 });
-
-                var navLinks = document.querySelectorAll('.sidebar nav a');
-                for (var i = 0; i < navLinks.length; i++) {
-                    navLinks[i].addEventListener('click', function() {
-                        if (window.innerWidth <= 850) {
-                            closeSidebar();
-                        }
-                    });
-                }
             }
 
             // ============================================================
-            // STORAGE LISTENER            // ============================================================
-            window.addEventListener('storage', function(e) {
-                if (e.key === 'userApplications' || e.key === 'userPermits' || e.key === 'userNotifications' || e.key === 'activeUsers') {
-                    console.log('Data changed, refreshing admin...');
-                    refreshAll();
-                }
-            });
+            // LOGOUT FUNCTION - GOES TO index.html
+            // ============================================================
+            function logoutAdmin() {
+                if (!confirm('Are you sure you want to logout?')) return;
+                
+                var uid = sessionStorage.getItem('userUid');
+                console.log('🔴 Logging out admin...');
+                
+                var removePromise = uid ? db.collection("active_users").doc(uid).delete() : Promise.resolve();
+                
+                removePromise
+                    .then(function() {
+                        console.log('✅ Removed from active users');
+                        return auth.signOut();
+                    })
+                    .then(function() {
+                        console.log('✅ Signed out from Firebase');
+                        sessionStorage.clear();
+                        window.location.href = 'index.html';
+                    })
+                    .catch(function(err) {
+                        console.error('Logout error:', err);
+                        sessionStorage.clear();
+                        window.location.href = 'index.html';
+                    });
+            }
+
+            // ============================================================
+            // HEARTBEAT
+            // ============================================================
+            function heartbeat() {
+                renderActiveUsers();
+                renderDashboard();
+                renderReports();
+            }
 
             // ============================================================
             // INIT
@@ -2954,27 +1881,6 @@
                     `;
                 }
 
-                // Register admin as active
-                var activeUsers = getActiveUsers();
-                var adminExists = false;
-                for (var i = 0; i < activeUsers.length; i++) {
-                    if (activeUsers[i].email === 'admin@pagbilao.gov.ph') {
-                        adminExists = true;
-                        break;
-                    }
-                }
-                if (!adminExists) {
-                    activeUsers.push({
-                        id: 'admin',
-                        name: 'Admin User',
-                        email: 'admin@pagbilao.gov.ph',
-                        initials: 'AU',
-                        lastActive: Date.now(),
-                        status: 'online'
-                    });
-                    setActiveUsers(activeUsers);
-                }
-
                 setInterval(heartbeat, 15000);
 
                 refreshAll();
@@ -2992,37 +1898,29 @@
                     if (!profile.contains(e.target)) closeDropdown();
                 });
 
-                document.getElementById('dropdownLogoutBtn').addEventListener('click', function(e) {
-                    e.preventDefault();
-                    var users = getActiveUsers();
-                    var updated = [];
-                    for (var i = 0; i < users.length; i++) {
-                        if (users[i].email !== 'admin@pagbilao.gov.ph') {
-                            updated.push(users[i]);
-                        }
-                    }
-                    setActiveUsers(updated);
-                    sessionStorage.removeItem('adminLoggedIn');
-                    window.location.href = 'index.html';
-                });
+                // LOGOUT BUTTONS
+                var dropdownLogoutBtn = document.getElementById('dropdownLogoutBtn');
+                if (dropdownLogoutBtn) {
+                    dropdownLogoutBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        logoutAdmin();
+                    });
+                }
 
-                document.getElementById('adminLogoutLink').addEventListener('click', function(e) {
-                    e.preventDefault();
-                    var users = getActiveUsers();
-                    var updated = [];
-                    for (var i = 0; i < users.length; i++) {
-                        if (users[i].email !== 'admin@pagbilao.gov.ph') {
-                            updated.push(users[i]);
-                        }
-                    }
-                    setActiveUsers(updated);
-                    sessionStorage.removeItem('adminLoggedIn');
-                    window.location.href = 'index.html';
-                });
+                var adminLogoutLink = document.getElementById('adminLogoutLink');
+                if (adminLogoutLink) {
+                    adminLogoutLink.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        logoutAdmin();
+                    });
+                }
 
                 document.getElementById('profileMenuItem').addEventListener('click', function() {
                     closeDropdown();
-                    showToast('👤 Admin User\n📧 admin@pagbilao.gov.ph\n🔑 Administrator', 'info', 4000);
+                    var user = auth.currentUser;
+                    if (user) {
+                        showToast('👤 Admin User\n📧 ' + user.email + '\n🔑 Administrator', 'info', 4000);
+                    }
                 });
 
                 document.getElementById('settingsMenuItem').addEventListener('click', function() {
@@ -3032,31 +1930,65 @@
             }
 
             // ============================================================
-            // URL PARAM HANDLER
+            // AUTH STATE CHECK
             // ============================================================
-            var urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('admin') === 'success') {
-                sessionStorage.setItem('adminLoggedIn', 'true');
-                if (window.history && window.history.replaceState) {
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                }
-            }
-
-            // ============================================================
-            // BEFORE UNLOAD
-            // ============================================================
-            window.addEventListener('beforeunload', function() {
-                var users = getActiveUsers();
-                var updated = [];
-                for (var i = 0; i < users.length; i++) {
-                    if (users[i].email !== 'admin@pagbilao.gov.ph') {
-                        updated.push(users[i]);
+            auth.onAuthStateChanged(async function(user) {
+                if (!user) {
+                    var adminLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
+                    if (adminLoggedIn) {
+                        sessionStorage.clear();
+                        window.location.href = 'index.html';
                     }
+                    return;
                 }
-                setActiveUsers(updated);
+
+                try {
+                    var userDoc = await db.collection("users").doc(user.uid).get();
+                    var userData = userDoc.data();
+                    
+                    if (!userData || userData.user_type !== "admin") {
+                        await auth.signOut();
+                        sessionStorage.clear();
+                        window.location.href = 'dashboard.html';
+                        return;
+                    }
+
+                    sessionStorage.setItem('userUid', user.uid);
+                    sessionStorage.setItem('adminLoggedIn', 'true');
+                    sessionStorage.setItem('userType', 'admin');
+                    sessionStorage.setItem('adminEmail', user.email);
+
+                    await db.collection("active_users").doc(user.uid).set({
+                        uid: user.uid,
+                        name: userData.name || 'Admin',
+                        email: user.email,
+                        initials: (userData.name || 'A').split(' ').map(function(n) { return n[0]; }).join('').toUpperCase().slice(0,2),
+                        last_active: firebase.firestore.FieldValue.serverTimestamp(),
+                        status: "online"
+                    });
+
+                    document.getElementById('userDisplayName').textContent = userData.name || 'Admin User';
+                    document.getElementById('userAvatar').textContent = (userData.name || 'A').split(' ').map(function(n) { return n[0]; }).join('').toUpperCase().slice(0,2);
+                    document.getElementById('dropdownUserName').textContent = userData.name || 'Admin User';
+                    document.getElementById('dropdownUserEmail').textContent = user.email;
+
+                    await refreshAll();
+
+                    db.collection("applications").onSnapshot(function() { refreshAll(); });
+                    db.collection("permits").onSnapshot(function() { refreshAll(); });
+                    db.collection("users").onSnapshot(function() { refreshAll(); });
+                    db.collection("active_users").onSnapshot(function() { refreshAll(); });
+
+                } catch (err) {
+                    console.error('Admin check error:', err);
+                    await auth.signOut();
+                    sessionStorage.clear();
+                    window.location.href = 'index.html';
+                }
             });
 
-            init();
+            console.log('🚀 Admin Dashboard with Firebase ready!');
+            console.log('📧 Click Logout to go back to index.html');
 
         })();
     </script>

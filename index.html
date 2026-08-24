@@ -9,10 +9,18 @@
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
-    <!-- ===== 2. SUPABASE LIBRARY SECOND ===== -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- ===== 2. FIREBASE LIBRARIES (REPLACES SUPABASE) ===== -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- ===== 3. FIREBASE CONFIG ===== -->
+    <script src="firebase-config.js"></script>
 
     <style>
+        /* ===== ALL YOUR EXISTING CSS REMAINS EXACTLY THE SAME ===== */
+        /* Copy your entire CSS from your original index.html here */
+        
         * {
             margin: 0;
             padding: 0;
@@ -679,6 +687,9 @@
 
 <body>
 
+<!-- ===== ALL YOUR EXISTING HTML REMAINS EXACTLY THE SAME ===== -->
+<!-- Copy your entire HTML body from your original index.html here -->
+
 <div class="login-wrapper">
 
     <!-- LEFT PANEL -->
@@ -1087,64 +1098,6 @@
 
 <script>
     // ============================================================
-    // SUPABASE SETUP - DIRECT IN HTML
-    // ============================================================
-
-    const SUPABASE_URL = 'https://aqrwojihqnooaxiytgmv.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_S1SjM1Gq-LxeCZks88QwgQ_rbXus_';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    async function getUserByEmail(email) {
-        const { data, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('email', email)
-            .single();
-        if (error && error.code !== 'PGRST116') throw error;
-        return data;
-    }
-
-    async function createUser(userData) {
-        const { data, error } = await supabase
-            .from('users')
-            .insert([userData])
-            .select();
-        if (error) throw error;
-        return data;
-    }
-
-    async function createProfile(profileData) {
-        const { data, error } = await supabase
-            .from('profiles')
-            .insert([profileData])
-            .select();
-        if (error) throw error;
-        return data;
-    }
-
-    async function updateUser(email, updates) {
-        const { data, error } = await supabase
-            .from('users')
-            .update(updates)
-            .eq('email', email)
-            .select();
-        if (error) throw error;
-        return data;
-    }
-
-    async function upsertActiveUser(userData) {
-        const { data, error } = await supabase
-            .from('active_users')
-            .upsert([userData], { onConflict: 'id' })
-            .select();
-        if (error) throw error;
-        return data;
-    }
-
-    console.log('✅ Supabase functions ready');
-
-
-    // ============================================================
     // PASSWORD SHOW / HIDE
     // ============================================================
 
@@ -1161,24 +1114,20 @@
         }
     }
 
-
     // ============================================================
     // ELEMENTS
     // ============================================================
 
     var userTab = document.getElementById("userTabBtn");
     var adminTab = document.getElementById("adminTabBtn");
-
     var userBox = document.getElementById("userLoginBox");
     var createBox = document.getElementById("createAccountBox");
     var adminBox = document.getElementById("adminLoginBox");
-
     var showCreateAccount = document.getElementById("showCreateAccount");
     var showLogin = document.getElementById("showLogin");
 
-
     // ============================================================
-    // SHOW USER LOGIN
+    // SHOW FUNCTIONS
     // ============================================================
 
     function showUserLogin() {
@@ -1189,11 +1138,6 @@
         adminTab.classList.remove("active");
     }
 
-
-    // ============================================================
-    // SHOW CREATE ACCOUNT
-    // ============================================================
-
     function showCreateAccountPage() {
         userBox.classList.add("hidden");
         createBox.classList.remove("hidden");
@@ -1201,11 +1145,6 @@
         userTab.classList.add("active");
         adminTab.classList.remove("active");
     }
-
-
-    // ============================================================
-    // SHOW ADMIN
-    // ============================================================
 
     function showAdminLogin() {
         userBox.classList.add("hidden");
@@ -1215,12 +1154,25 @@
         userTab.classList.remove("active");
     }
 
-
     showCreateAccount.addEventListener("click", showCreateAccountPage);
     showLogin.addEventListener("click", showUserLogin);
     userTab.addEventListener("click", showUserLogin);
     adminTab.addEventListener("click", showAdminLogin);
 
+    // ============================================================
+    // CHECK FIREBASE CONNECTION
+    // ============================================================
+
+    console.log('🔍 Checking Firebase...');
+    console.log('auth:', typeof auth !== 'undefined' ? '✅ Loaded' : '❌ Not loaded');
+    console.log('db:', typeof db !== 'undefined' ? '✅ Loaded' : '❌ Not loaded');
+
+    if (typeof auth === 'undefined' || typeof db === 'undefined') {
+        console.error('❌ Firebase not loaded!');
+        alert('Firebase not loaded. Please check your configuration.');
+    } else {
+        console.log('✅ Firebase loaded successfully!');
+    }
 
     // ============================================================
     // CREATE USER ACCOUNT
@@ -1265,32 +1217,33 @@
         }
 
         try {
-            var existingUser = await getUserByEmail(email);
+            console.log('📝 Creating user:', email);
 
-            if (existingUser) {
-                error.querySelector("span").textContent = "An account with this email already exists.";
-                error.classList.add("show");
-                return;
-            }
+            // ===== FIREBASE: CREATE USER IN AUTHENTICATION =====
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            const user = userCredential.user;
 
-            await createUser({
+            console.log('✅ User created in Authentication:', user.uid);
+
+            // ===== FIREBASE: SAVE USER PROFILE TO FIRESTORE =====
+            await db.collection("users").doc(user.uid).set({
+                uid: user.uid,
                 email: email,
                 name: name,
-                password: password,
-                user_type: 'user'
+                user_type: "user",
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                last_login: null
             });
 
-            await createProfile({
-                email: email,
-                name: name,
-                user_type: 'Resident',
-                member_since: new Date().toISOString()
-            });
+            console.log('✅ User profile saved to Firestore');
 
             success.querySelector("span").textContent = "Account created successfully! Please log in.";
             success.classList.add("show");
 
             document.getElementById("createAccountForm").reset();
+
+            // Auto-logout after signup
+            await auth.signOut();
 
             setTimeout(function() {
                 showUserLogin();
@@ -1298,21 +1251,24 @@
             }, 1500);
 
         } catch (err) {
-            console.error('Registration error:', err);
-            error.querySelector("span").textContent = "Error: " + err.message;
+            console.error('❌ Registration error:', err);
+            let msg = err.message;
+            if (err.code === 'auth/email-already-in-use') {
+                msg = "An account with this email already exists.";
+            }
+            error.querySelector("span").textContent = msg;
             error.classList.add("show");
         }
     });
 
-
     // ============================================================
-    // USER LOGIN - FIXED: Added console logs for debugging
+    // USER LOGIN
     // ============================================================
 
     document.getElementById("userForm").addEventListener("submit", async function(e) {
         e.preventDefault();
 
-        console.log('🔵 Login button clicked!');
+        console.log('🔵 User Login button clicked!');
 
         var email = document.getElementById("userEmail").value.trim();
         var password = document.getElementById("userPassword").value;
@@ -1323,9 +1279,6 @@
         error.classList.remove("show");
         success.classList.remove("show");
 
-        console.log('📧 Email:', email);
-        console.log('🔑 Password entered:', password ? 'Yes' : 'No');
-
         if (!email || !password) {
             error.querySelector("span").textContent = "Please enter your email and password.";
             error.classList.add("show");
@@ -1333,42 +1286,52 @@
         }
 
         try {
-            console.log('🔍 Checking user in Supabase...');
-            var user = await getUserByEmail(email);
-            console.log('👤 User found:', user);
+            console.log('🔍 Attempting to sign in:', email);
 
-            if (!user) {
-                error.querySelector("span").textContent = "No account found. Please create an account first.";
+            // ===== FIREBASE: SIGN IN =====
+            const userCredential = await auth.signInWithEmailAndPassword(email, password);
+            const user = userCredential.user;
+
+            console.log('✅ User signed in:', user.uid);
+
+            // ===== FIREBASE: GET USER DATA FROM FIRESTORE =====
+            const userDoc = await db.collection("users").doc(user.uid).get();
+            const userData = userDoc.data();
+
+            console.log('📋 User data from Firestore:', userData);
+
+            if (!userData) {
+                console.error('❌ User profile not found in Firestore!');
+                error.querySelector("span").textContent = "User profile not found. Please create an account.";
                 error.classList.add("show");
+                await auth.signOut();
                 return;
             }
 
-            if (password !== user.password) {
-                error.querySelector("span").textContent = "Incorrect email or password.";
-                error.classList.add("show");
-                return;
-            }
-
-            console.log('✅ Login successful!');
-
-            await updateUser(email, {
-                last_login: new Date().toISOString()
+            // Update last_login
+            await db.collection("users").doc(user.uid).update({
+                last_login: firebase.firestore.FieldValue.serverTimestamp()
             });
 
+            // Save to session storage
             sessionStorage.clear();
-
-            sessionStorage.setItem("userEmail", user.email);
-            sessionStorage.setItem("userName", user.name);
-            sessionStorage.setItem("userType", user.user_type || 'user');
+            sessionStorage.setItem("userEmail", userData.email);
+            sessionStorage.setItem("userName", userData.name);
+            sessionStorage.setItem("userType", userData.user_type || "user");
+            sessionStorage.setItem("userUid", user.uid);
             sessionStorage.removeItem("adminLoggedIn");
 
-            await upsertActiveUser({
-                id: user.email,
-                name: user.name,
-                email: user.email,
-                initials: user.name.split(' ').map(function(n) { return n[0]; }).join('').toUpperCase(),
-                last_active: new Date().toISOString(),
-                status: 'online'
+            console.log('✅ Session saved, userType:', userData.user_type);
+
+            // ===== FIREBASE: SAVE TO ACTIVE USERS =====
+            const initials = userData.name.split(' ').map(function(n) { return n[0]; }).join('').toUpperCase();
+            await db.collection("active_users").doc(user.uid).set({
+                uid: user.uid,
+                name: userData.name,
+                email: userData.email,
+                initials: initials,
+                last_active: firebase.firestore.FieldValue.serverTimestamp(),
+                status: "online"
             });
 
             success.querySelector("span").textContent = "Login successful! Redirecting...";
@@ -1384,18 +1347,29 @@
 
         } catch (err) {
             console.error('❌ Login error:', err);
-            error.querySelector("span").textContent = "Error: " + err.message;
+            let msg = err.message;
+            if (err.code === 'auth/user-not-found') {
+                msg = "No account found. Please create an account first.";
+            } else if (err.code === 'auth/wrong-password') {
+                msg = "Incorrect email or password.";
+            } else if (err.code === 'auth/invalid-email') {
+                msg = "Invalid email format.";
+            } else if (err.code === 'auth/too-many-requests') {
+                msg = "Too many failed attempts. Please try again later.";
+            }
+            error.querySelector("span").textContent = msg;
             error.classList.add("show");
         }
     });
-
 
     // ============================================================
     // ADMIN LOGIN
     // ============================================================
 
-    document.getElementById("adminForm").addEventListener("submit", function(e) {
+    document.getElementById("adminForm").addEventListener("submit", async function(e) {
         e.preventDefault();
+
+        console.log('🔵 Admin Login button clicked!');
 
         var email = document.getElementById("adminEmail").value.trim();
         var password = document.getElementById("adminPassword").value;
@@ -1412,12 +1386,48 @@
             return;
         }
 
-        if (email === "admin@gmail.com" && password === "admin123") {
-            sessionStorage.clear();
+        try {
+            console.log('🔍 Admin login attempt:', email);
 
+            // ===== FIREBASE: SIGN IN =====
+            const userCredential = await auth.signInWithEmailAndPassword(email, password);
+            const user = userCredential.user;
+
+            console.log('✅ Admin signed in:', user.uid);
+
+            // ===== FIREBASE: GET USER DATA FROM FIRESTORE =====
+            const userDoc = await db.collection("users").doc(user.uid).get();
+            const userData = userDoc.data();
+
+            console.log('📋 Admin data from Firestore:', userData);
+
+            // Check if user exists in Firestore
+            if (!userData) {
+                console.error('❌ Admin profile not found in Firestore!');
+                error.querySelector("span").textContent = "Admin profile not found. Please contact support.";
+                error.classList.add("show");
+                await auth.signOut();
+                return;
+            }
+
+            // Check if user is admin
+            if (userData.user_type !== "admin") {
+                console.error('❌ User is not an admin! user_type:', userData.user_type);
+                error.querySelector("span").textContent = "You do not have admin privileges.";
+                error.classList.add("show");
+                await auth.signOut();
+                return;
+            }
+
+            console.log('✅ Admin verified! Redirecting...');
+
+            // Save to session storage
+            sessionStorage.clear();
             sessionStorage.setItem("adminLoggedIn", "true");
             sessionStorage.setItem("adminEmail", email);
             sessionStorage.setItem("userType", "admin");
+            sessionStorage.setItem("userUid", user.uid);
+            sessionStorage.setItem("userName", userData.name || "Admin");
 
             success.querySelector("span").textContent = "Login successful! Redirecting...";
             success.classList.add("show");
@@ -1430,28 +1440,46 @@
                 window.location.href = "adminDashboard.html";
             }, 1500);
 
-        } else {
-            error.querySelector("span").textContent = "Invalid admin credentials. Please try again.";
+        } catch (err) {
+            console.error('❌ Admin login error:', err);
+            let msg = err.message;
+            if (err.code === 'auth/user-not-found') {
+                msg = "No admin account found with this email.";
+            } else if (err.code === 'auth/wrong-password') {
+                msg = "Incorrect password.";
+            } else if (err.code === 'auth/invalid-email') {
+                msg = "Invalid email format.";
+            } else {
+                msg = "Invalid admin credentials. Please try again.";
+            }
+            error.querySelector("span").textContent = msg;
             error.classList.add("show");
             document.getElementById("adminPassword").value = "";
         }
     });
 
-
     // ============================================================
     // SESSION CHECK
     // ============================================================
 
-    var isAdminLoggedIn = sessionStorage.getItem("adminLoggedIn") === "true";
-    var userEmail = sessionStorage.getItem("userEmail");
-    var userType = sessionStorage.getItem("userType");
+    auth.onAuthStateChanged(function(user) {
+        if (user) {
+            console.log('👤 User authenticated:', user.email);
+            var isAdminLoggedIn = sessionStorage.getItem("adminLoggedIn") === "true";
+            var userType = sessionStorage.getItem("userType");
+            var userEmail = sessionStorage.getItem("userEmail");
 
-    if (isAdminLoggedIn || userType === "admin") {
-        window.location.href = "adminDashboard.html";
-    } else if (userEmail && userType === "user") {
-        window.location.href = "dashboard.html";
-    }
-
+            if (isAdminLoggedIn || userType === "admin") {
+                console.log('🔀 Redirecting to adminDashboard.html');
+                window.location.href = "adminDashboard.html";
+            } else if (userEmail && userType === "user") {
+                console.log('🔀 Redirecting to dashboard.html');
+                window.location.href = "dashboard.html";
+            }
+        } else {
+            console.log('👤 No user authenticated - staying on login page');
+        }
+    });
 
     // ============================================================
     // ENTER KEY SUPPORT
@@ -1469,7 +1497,10 @@
         });
     });
 
-    console.log("🚀 Login system ready!");
+    console.log("🚀 Login system with Firebase ready!");
+    console.log("📧 Admin login: admin@gmail.com");
+    console.log("🔑 Admin password: admin123");
+    console.log("📁 Firestore users collection:", db.collection("users"));
 </script>
 
 </body>

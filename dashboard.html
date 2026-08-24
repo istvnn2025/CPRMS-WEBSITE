@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pagbilao · Permit Dashboard</title>
     
-    <!-- ===== 1. SUPABASE LIBRARY FIRST ===== -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- ===== 1. FIREBASE LIBRARIES (REPLACES SUPABASE) ===== -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
-    <!-- ===== 2. SUPABASE CONFIG SECOND ===== -->
-    <script src="supabase-config.js"></script>
+    <!-- ===== 2. FIREBASE CONFIG ===== -->
+    <script src="firebase-config.js"></script>
     
     <!-- ===== 3. FIX: Force User Dashboard ===== -->
     <script>
@@ -19,11 +21,13 @@
             var userType = sessionStorage.getItem('userType');
             var userEmail = sessionStorage.getItem('userEmail');
             var adminLoggedIn = sessionStorage.getItem('adminLoggedIn');
+            var userUid = sessionStorage.getItem('userUid');
             
             console.log('🔍 dashboard.html check:', {
                 userType: userType,
                 userEmail: userEmail,
-                adminLoggedIn: adminLoggedIn
+                adminLoggedIn: adminLoggedIn,
+                userUid: userUid
             });
             
             // If admin is logged in, go to admin dashboard
@@ -53,7 +57,474 @@
     
     <!-- ===== 4. CSS AFTER SCRIPTS ===== -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
-    <link rel="stylesheet" href="dashboard.css" />
+    
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            background: #f4f0f0;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 260px;
+            background: #b31b1b;
+            color: white;
+            padding: 1.5rem 1.2rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            flex-shrink: 0;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.08);
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            padding-bottom: 1.2rem;
+        }
+        .sidebar-brand .logo-circle-small img {
+            width: 44px;
+            height: 44px;
+            object-fit: cover;
+            border-radius: 50%;
+            background: white;
+            padding: 2px;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        .sidebar-brand .brand-name {
+            font-weight: 600;
+            font-size: 1rem;
+            letter-spacing: -0.2px;
+        }
+        .sidebar-nav { flex: 1; }
+        .sidebar-nav ul { list-style: none; }
+        .sidebar-nav li {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 0.7rem 1rem;
+            margin: 0.1rem 0;
+            border-radius: 40px;
+            color: rgba(255,255,255,0.8);
+            font-weight: 500;
+            transition: 0.2s;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .sidebar-nav li:hover,
+        .sidebar-nav li.active {
+            background: rgba(255,255,255,0.15);
+            color: white;
+        }
+        .sidebar-nav li i { width: 20px; font-size: 1rem; }
+        .sidebar-nav li .badge {
+            margin-left: auto;
+            background: #ffd966;
+            color: #1f1414;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 0.05rem 0.6rem;
+            border-radius: 40px;
+        }
+        .sidebar-footer {
+            margin-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.12);
+            padding-top: 1rem;
+        }
+        .sidebar-footer button {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            padding: 0.6rem 1rem;
+            border-radius: 40px;
+            transition: 0.2s;
+            font-weight: 500;
+            cursor: pointer;
+            background: none;
+            border: none;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+        .sidebar-footer button:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            flex: 1;
+            padding: 0;
+            background: #faf8f8;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        /* ===== TOP HEADER ===== */
+        .top-header {
+            background: white;
+            padding: 0.7rem 2.5rem;
+            border-bottom: 1px solid #f0e6e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+        .top-header .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .top-header .header-left .menu-btn {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            color: #b31b1b;
+            cursor: pointer;
+            display: none;
+        }
+        .top-header .header-left h2 { font-size: 1.2rem; color: #1f1414; }
+        .top-header .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .top-header .header-right .user-greeting {
+            font-size: 0.85rem;
+            color: #755a5a;
+        }
+        .top-header .header-right .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #b31b1b;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        /* ===== CONTENT AREA ===== */
+        .content-area { padding: 1.5rem 2.5rem; flex: 1; }
+        .page-content { display: none; }
+        .page-content.active { display: block; }
+
+        /* ===== STATS GRID ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+        .stat-card {
+            background: white;
+            padding: 1rem 1.2rem;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            border: 1px solid #f0e6e6;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .stat-card .stat-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: white;
+            flex-shrink: 0;
+        }
+        .stat-icon.blue { background: #2a7de1; }
+        .stat-icon.purple { background: #6f42c1; }
+        .stat-icon.green { background: #28a745; }
+        .stat-icon.orange { background: #e8a317; }
+        .stat-card .stat-info h3 { font-size: 1.4rem; font-weight: 700; color: #1f1414; line-height: 1.1; }
+        .stat-card .stat-info p { color: #755a5a; font-size: 0.75rem; font-weight: 500; }
+
+        /* ===== TABLES ===== */
+        .table-container {
+            background: white;
+            border-radius: 20px;
+            padding: 1.2rem 1.5rem;
+            border: 1px solid #f0e6e6;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+            margin-bottom: 1.2rem;
+            overflow: hidden;
+        }
+        .table-container h2 { font-size: 1rem; color: #1f1414; margin-bottom: 1rem; }
+        .table-container h2 i { color: #b31b1b; margin-right: 6px; }
+        .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 500px; }
+        th { text-align: left; padding: 0.6rem 0.4rem; color: #5f3e3e; font-weight: 600; border-bottom: 2px solid #f0e6e6; white-space: nowrap; }
+        td { padding: 0.6rem 0.4rem; border-bottom: 1px solid #f3ecec; color: #2d1c1c; }
+
+        .status-badge {
+            padding: 0.1rem 0.7rem;
+            border-radius: 40px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .status-badge.approved { background: #e2f0e2; color: #1f6d1f; }
+        .status-badge.pending { background: #fef7e0; color: #e37400; }
+        .status-badge.cancelled { background: #f0e6e6; color: #5f3e3e; }
+        .status-badge.rejected { background: #fce4e4; color: #b31b1b; }
+
+        /* ===== NOTIFICATIONS ===== */
+        .notification-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid #f0e6e6;
+        }
+        .notification-item.unread { background: #fef7f7; margin: 0 -0.8rem; padding: 0.6rem 0.8rem; border-radius: 8px; }
+        .notification-item i { color: #b31b1b; font-size: 1rem; margin-top: 2px; }
+        .notification-item .notif-content { flex: 1; }
+        .notification-item .notif-content p { font-size: 0.8rem; color: #2d1c1c; }
+        .notification-item .notif-content .notif-time { font-size: 0.65rem; color: #8a7a7a; }
+
+        /* ===== PROFILE ===== */
+        .profile-container { background: white; border-radius: 20px; padding: 1.5rem; border: 1px solid #f0e6e6; }
+        .profile-wrapper { display: grid; grid-template-columns: 200px 1fr; gap: 2rem; margin-top: 1rem; }
+        .profile-avatar-large {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: #f0e6e6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            color: #b31b1b;
+            overflow: hidden;
+            position: relative;
+        }
+        .profile-avatar-large img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-card-enhanced .profile-info-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; }
+        .profile-card-enhanced .profile-name-section h3 { font-size: 1.3rem; color: #1f1414; }
+        .profile-card-enhanced .profile-role { font-size: 0.8rem; color: #755a5a; }
+        .profile-card-enhanced .profile-status { font-size: 0.7rem; color: #1f6d1f; }
+        .profile-card-enhanced .profile-status i { color: #28a745; }
+        .profile-details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem 1.5rem;
+            margin-top: 1rem;
+        }
+        .profile-details-grid .detail-item { display: flex; gap: 10px; align-items: flex-start; }
+        .profile-details-grid .detail-item i { color: #b31b1b; margin-top: 2px; width: 16px; }
+        .profile-details-grid .detail-item label { font-size: 0.65rem; color: #8a7a7a; display: block; }
+        .profile-details-grid .detail-item p { font-size: 0.85rem; color: #1f1414; }
+        .profile-details-grid .full-width { grid-column: 1 / -1; }
+        .btn-edit-profile {
+            background: #b31b1b;
+            color: white;
+            border: none;
+            padding: 0.4rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        .btn-edit-profile:hover { background: #8a1515; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 850px) {
+            .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100vh; z-index: 999; padding-top: 4rem; }
+            .sidebar.open { left: 0; }
+            .top-header .header-left .menu-btn { display: block; }
+            .top-header { padding: 0.5rem 1rem; padding-left: 3.5rem; }
+            .content-area { padding: 1rem; }
+            .profile-wrapper { grid-template-columns: 1fr; text-align: center; }
+            .profile-avatar-large { margin: 0 auto; }
+            .profile-details-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 550px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .top-header .header-right .user-greeting { display: none; }
+        }
+
+        /* ===== FORM CONTAINER ===== */
+        .form-container {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid #f0e6e6;
+        }
+        .permit-main-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .permit-main-card {
+            background: #faf7f7;
+            border: 2px solid #f0e6e6;
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .permit-main-card:hover {
+            border-color: #b31b1b;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 16px rgba(179,27,27,0.1);
+        }
+        .permit-main-card .permit-main-icon {
+            font-size: 2.5rem;
+            color: #b31b1b;
+            margin-bottom: 0.5rem;
+        }
+        .permit-main-card h3 { color: #1f1414; font-size: 1rem; }
+        .permit-main-card p { color: #8a7a7a; font-size: 0.75rem; margin-top: 0.3rem; }
+
+        /* ===== RECENT ACTIVITY ===== */
+        .recent-activity { background: white; border-radius: 20px; padding: 1.2rem 1.5rem; border: 1px solid #f0e6e6; }
+        .recent-activity h3 { font-size: 1rem; color: #1f1414; margin-bottom: 1rem; }
+        .recent-activity h3 i { color: #b31b1b; margin-right: 6px; }
+        .activity-list p { color: #8a7a7a; text-align: center; padding: 1rem; }
+
+        .btn-clear-history:hover { opacity: 0.85; transform: translateY(-1px); }
+
+        /* ===== SETTINGS ===== */
+        .settings-container { background: white; border-radius: 20px; padding: 1.5rem; border: 1px solid #f0e6e6; }
+        .settings-group { margin-top: 1.5rem; border-top: 1px solid #f0e6e6; padding-top: 1.5rem; }
+        .settings-group h3 { font-size: 0.9rem; color: #1f1414; margin-bottom: 0.8rem; }
+        .settings-group h3 i { color: #b31b1b; margin-right: 8px; }
+        .setting-item { margin-bottom: 0.8rem; }
+        .setting-item label { display: block; font-size: 0.7rem; color: #755a5a; margin-bottom: 2px; font-weight: 600; }
+        .setting-item .form-control {
+            width: 100%;
+            padding: 0.5rem 0.8rem;
+            border: 1.5px solid #e6d6d6;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            background: #fefcfc;
+        }
+        .setting-item .form-control:focus { outline: none; border-color: #b31b1b; }
+        .btn-change-password, .btn-delete-account {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-change-password { background: #b31b1b; color: white; }
+        .btn-change-password:hover { background: #8a1515; }
+        .btn-delete-account { background: #dc3545; color: white; }
+        .btn-delete-account:hover { background: #c82333; }
+        .danger-zone { border-top: 2px solid #dc3545; }
+        .delete-warning { font-size: 0.65rem; color: #755a5a; margin-top: 4px; }
+        .auto-save-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #28a745;
+            font-size: 0.7rem;
+            margin-top: 1rem;
+            justify-content: center;
+        }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .modal-header h3 { color: #1f1414; }
+        .modal-close { background: none; border: none; font-size: 1.5rem; color: #b31b1b; cursor: pointer; }
+        .modal-body .form-group { margin-bottom: 1rem; }
+        .modal-body .form-group label { display: block; font-size: 0.75rem; font-weight: 600; color: #3d2626; margin-bottom: 4px; }
+        .modal-body .form-group .form-control {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border: 1.5px solid #e6d6d6;
+            border-radius: 10px;
+            font-size: 0.85rem;
+        }
+        .modal-body .form-group .form-control:focus { outline: none; border-color: #b31b1b; }
+        .modal-footer { display: flex; gap: 0.8rem; justify-content: flex-end; margin-top: 1rem; }
+        .modal-footer .btn-cancel { background: #6c757d; color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .modal-footer .btn-save { background: #b31b1b; color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .modal-footer .btn-save:hover { background: #8a1515; }
+
+        /* Avatar upload overlay */
+        .avatar-upload-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.6);
+            padding: 0.5rem;
+            text-align: center;
+            opacity: 0;
+            transition: 0.3s;
+            border-radius: 0 0 50% 50%;
+        }
+        .profile-avatar-large:hover .avatar-upload-overlay { opacity: 1; }
+        .avatar-upload-btn {
+            color: white;
+            cursor: pointer;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .avatar-upload-btn i { font-size: 0.9rem; }
+        #avatarUpload, #editAvatar { display: none; }
+    </style>
 </head>
 <body>
     <aside class="sidebar" id="sidebar">
@@ -372,17 +843,481 @@
 
     <script>
         // ============================================================
-        // LOGOUT - FIXED
+        // FIREBASE DATA HELPERS
         // ============================================================
-        document.getElementById('logoutBtn').addEventListener('click', function() {
+
+        function getInitials(name) {
+            if (!name) return 'U';
+            return name.split(' ').map(function(n) { return n[0]; }).join('').toUpperCase().slice(0, 2);
+        }
+
+        function formatDate(timestamp) {
+            if (!timestamp) return 'N/A';
+            try {
+                var date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            } catch (e) {
+                return 'N/A';
+            }
+        }
+
+        // ============================================================
+        // LOGOUT - FIREBASE VERSION
+        // ============================================================
+        document.getElementById('logoutBtn').addEventListener('click', async function() {
             if (confirm('Are you sure you want to logout?')) {
-                // Clear ALL session
-                sessionStorage.clear();
-                window.location.href = 'index.html';
+                try {
+                    var uid = sessionStorage.getItem('userUid');
+                    if (uid) {
+                        await db.collection("active_users").doc(uid).delete();
+                    }
+                    await auth.signOut();
+                    sessionStorage.clear();
+                    window.location.href = 'index.html';
+                } catch (err) {
+                    console.error('Logout error:', err);
+                    sessionStorage.clear();
+                    window.location.href = 'index.html';
+                }
             }
         });
+
+        // ============================================================
+        // OPEN PERMIT
+        // ============================================================
+        window.openPermit = function(type, name) {
+            sessionStorage.setItem('permitType', type);
+            sessionStorage.setItem('permitName', name);
+            window.location.href = 'permit-form.html';
+        };
+
+        // ============================================================
+        // DELETE ACCOUNT
+        // ============================================================
+        window.confirmDeleteAccount = function() {
+            if (confirm('⚠️ Are you sure you want to delete your account? This cannot be undone!')) {
+                if (confirm('Really? All your data will be permanently removed.')) {
+                    alert('Delete account functionality - Contact admin for account deletion.');
+                }
+            }
+        };
+
+        window.changePassword = function() {
+            alert('Password change functionality - Contact admin for password reset.');
+        };
+
+        window.clearApplicationHistory = function() {
+            if (confirm('Clear all application history?')) {
+                var uid = sessionStorage.getItem('userUid');
+                if (uid) {
+                    db.collection("applications")
+                        .where("uid", "==", uid)
+                        .get()
+                        .then(function(snapshot) {
+                            var batch = db.batch();
+                            snapshot.forEach(function(doc) {
+                                batch.delete(doc.ref);
+                            });
+                            return batch.commit();
+                        })
+                        .then(function() {
+                            alert('Application history cleared!');
+                            loadDashboard();
+                        })
+                        .catch(function(err) {
+                            console.error('Error clearing history:', err);
+                            alert('Error clearing history: ' + err.message);
+                        });
+                }
+            }
+        };
+
+        window.clearNotificationHistory = function() {
+            if (confirm('Clear all notifications?')) {
+                var uid = sessionStorage.getItem('userUid');
+                if (uid) {
+                    db.collection("notifications")
+                        .where("uid", "==", uid)
+                        .get()
+                        .then(function(snapshot) {
+                            var batch = db.batch();
+                            snapshot.forEach(function(doc) {
+                                batch.delete(doc.ref);
+                            });
+                            return batch.commit();
+                        })
+                        .then(function() {
+                            alert('Notifications cleared!');
+                            loadDashboard();
+                        })
+                        .catch(function(err) {
+                            console.error('Error clearing notifications:', err);
+                            alert('Error clearing notifications: ' + err.message);
+                        });
+                }
+            }
+        };
+
+        // ============================================================
+        // NAVIGATION
+        // ============================================================
+        document.querySelectorAll('.sidebar-nav li').forEach(function(item) {
+            item.addEventListener('click', function() {
+                var page = this.dataset.page;
+                document.querySelectorAll('.sidebar-nav li').forEach(function(el) { el.classList.remove('active'); });
+                this.classList.add('active');
+
+                document.querySelectorAll('.page-content').forEach(function(el) { el.classList.remove('active'); });
+                var target = document.getElementById('page-' + page);
+                if (target) target.classList.add('active');
+
+                var titles = {
+                    dashboard: 'Dashboard',
+                    'file-permit': 'File Permit',
+                    'my-applications': 'My Applications',
+                    'my-permits': 'My Permits',
+                    notifications: 'Notifications',
+                    profile: 'My Profile',
+                    settings: 'Settings'
+                };
+                document.getElementById('pageTitle').textContent = titles[page] || page.charAt(0).toUpperCase() + page.slice(1).replace('-', ' ');
+
+                // Close mobile sidebar
+                if (window.innerWidth <= 850) {
+                    document.getElementById('sidebar').classList.remove('open');
+                }
+            });
+        });
+
+        // ============================================================
+        // TOGGLE SIDEBAR
+        // ============================================================
+        document.getElementById('toggleSidebar').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('open');
+        });
+
+        // ============================================================
+        // EDIT PROFILE MODAL
+        // ============================================================
+        document.getElementById('editProfileBtn').addEventListener('click', function() {
+            document.getElementById('editName').value = document.getElementById('profileName').textContent;
+            document.getElementById('editEmail').value = document.getElementById('profileEmail').textContent;
+            document.getElementById('editPhone').value = document.getElementById('profilePhone').textContent;
+            document.getElementById('editAddress').value = document.getElementById('profileAddress').textContent;
+            document.getElementById('editBio').value = document.getElementById('profileBio').textContent;
+            document.getElementById('editProfileModal').classList.add('active');
+        });
+
+        document.getElementById('closeModalBtn').addEventListener('click', function() {
+            document.getElementById('editProfileModal').classList.remove('active');
+        });
+
+        document.getElementById('cancelModalBtn').addEventListener('click', function() {
+            document.getElementById('editProfileModal').classList.remove('active');
+        });
+
+        document.getElementById('saveProfileBtn').addEventListener('click', async function() {
+            var name = document.getElementById('editName').value.trim();
+            var phone = document.getElementById('editPhone').value.trim();
+            var address = document.getElementById('editAddress').value.trim();
+            var bio = document.getElementById('editBio').value.trim();
+            var uid = sessionStorage.getItem('userUid');
+
+            if (!uid) {
+                alert('User not logged in.');
+                return;
+            }
+
+            try {
+                await db.collection("users").doc(uid).update({
+                    name: name || 'User',
+                    phone: phone || '',
+                    address: address || '',
+                    bio: bio || ''
+                });
+
+                await db.collection("profiles").doc(uid).update({
+                    name: name || 'User',
+                    phone: phone || '',
+                    address: address || '',
+                    bio: bio || ''
+                });
+
+                sessionStorage.setItem('userName', name || 'User');
+
+                document.getElementById('profileName').textContent = name || 'User';
+                document.getElementById('profileEmail').textContent = document.getElementById('editEmail').value;
+                document.getElementById('profilePhone').textContent = phone || '+63 912 3456 789';
+                document.getElementById('profileAddress').textContent = address || 'Brgy. Poblacion, Pagbilao, Quezon';
+                document.getElementById('profileBio').textContent = bio || 'No bio provided yet.';
+                document.getElementById('userGreeting').textContent = 'Welcome, ' + (name || 'User');
+
+                document.getElementById('editProfileModal').classList.remove('active');
+                alert('Profile updated successfully!');
+            } catch (err) {
+                console.error('Error updating profile:', err);
+                alert('Error updating profile: ' + err.message);
+            }
+        });
+
+        // ============================================================
+        // LOAD DASHBOARD DATA
+        // ============================================================
+        async function loadDashboard() {
+            var uid = sessionStorage.getItem('userUid');
+            if (!uid) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                // Get user data
+                var userDoc = await db.collection("users").doc(uid).get();
+                var userData = userDoc.data();
+                if (!userData) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                // Update greeting and profile
+                document.getElementById('userGreeting').textContent = 'Welcome, ' + (userData.name || 'User');
+                document.getElementById('profileName').textContent = userData.name || 'User';
+                document.getElementById('profileEmail').textContent = userData.email || 'user@email.com';
+                document.getElementById('profilePhone').textContent = userData.phone || '+63 912 3456 789';
+                document.getElementById('profileAddress').textContent = userData.address || 'Brgy. Poblacion, Pagbilao, Quezon';
+                document.getElementById('profileBio').textContent = userData.bio || 'No bio provided yet.';
+                document.getElementById('profileMemberSince').textContent = formatDate(userData.createdAt);
+
+                // Update settings
+                document.getElementById('settingsName').value = userData.name || 'User';
+                document.getElementById('settingsEmail').value = userData.email || 'user@email.com';
+                document.getElementById('settingsPhone').value = userData.phone || '+63 912 3456 789';
+                document.getElementById('settingsAddress').value = userData.address || 'Brgy. Poblacion, Pagbilao, Quezon';
+                document.getElementById('settingsUsername').value = userData.email || 'user';
+                document.getElementById('settingsUserType').value = userData.user_type || 'Resident';
+
+                // Get applications
+                var appsSnapshot = await db.collection("applications")
+                    .where("uid", "==", uid)
+                    .orderBy("createdAt", "desc")
+                    .get();
+                var apps = [];
+                appsSnapshot.forEach(function(doc) { apps.push({ id: doc.id, ...doc.data() }); });
+
+                // Get permits
+                var permitsSnapshot = await db.collection("permits")
+                    .where("uid", "==", uid)
+                    .orderBy("createdAt", "desc")
+                    .get();
+                var permits = [];
+                permitsSnapshot.forEach(function(doc) { permits.push({ id: doc.id, ...doc.data() }); });
+
+                // Get notifications
+                var notifsSnapshot = await db.collection("notifications")
+                    .where("uid", "==", uid)
+                    .orderBy("createdAt", "desc")
+                    .limit(50)
+                    .get();
+                var notifs = [];
+                notifsSnapshot.forEach(function(doc) { notifs.push({ id: doc.id, ...doc.data() }); });
+
+                // --- Update Stats ---
+                document.getElementById('totalApps').textContent = apps.length;
+                document.getElementById('totalPermits').textContent = permits.length;
+                var approved = permits.filter(function(p) { return p.status === 'Active' || p.status === 'Approved'; });
+                document.getElementById('approvedApps').textContent = approved.length;
+
+                var today = new Date();
+                var expiring = permits.filter(function(p) {
+                    if (p.expiryDate && p.status === 'Active') {
+                        var expiry = new Date(p.expiryDate);
+                        var diff = (expiry - today) / (1000 * 60 * 60 * 24);
+                        return diff > 0 && diff <= 30;
+                    }
+                    return false;
+                });
+                document.getElementById('expiringCount').textContent = expiring.length;
+
+                // --- Update Applications Table ---
+                var appsBody = document.getElementById('applicationsTableBody');
+                if (apps.length === 0) {
+                    appsBody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:1rem;">No applications yet</td></tr>';
+                } else {
+                    appsBody.innerHTML = apps.slice(0, 20).map(function(app) {
+                        var cls = app.status === 'Approved' ? 'approved' : app.status === 'Pending' ? 'pending' : 'cancelled';
+                        return '<tr><td>' + (app.type || 'N/A') + '</td><td>' + formatDate(app.createdAt) + '</td><td><span class="status-badge ' + cls + '">' + (app.status || 'Pending') + '</span></td></tr>';
+                    }).join('');
+                }
+
+                // --- Update Permits Table ---
+                var permitsBody = document.getElementById('permitsTableBody');
+                if (permits.length === 0) {
+                    permitsBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1rem;">No permits yet</td></tr>';
+                } else {
+                    permitsBody.innerHTML = permits.slice(0, 20).map(function(p) {
+                        var cls = p.status === 'Active' || p.status === 'Approved' ? 'approved' : p.status === 'Pending' ? 'pending' : 'cancelled';
+                        return '<tr><td>' + (p.permitNo || p.id.slice(0,8) || 'N/A') + '</td><td>' + (p.type || 'N/A') + '</td><td>' + (p.dateIssued || formatDate(p.createdAt)) + '</td><td>' + (p.expiryDate || 'N/A') + '</td><td><span class="status-badge ' + cls + '">' + (p.status || 'Pending') + '</span></td></tr>';
+                    }).join('');
+                }
+
+                // --- Update Notifications ---
+                var notifList = document.getElementById('notificationList');
+                if (notifs.length === 0) {
+                    notifList.innerHTML = '<p style="color:#8a7a7a;text-align:center;padding:1rem;">No notifications yet</p>';
+                } else {
+                    notifList.innerHTML = notifs.slice(0, 20).map(function(n) {
+                        return '<div class="notification-item ' + (n.unread ? 'unread' : '') + '"><i class="fas ' + (n.iconClass || 'fa-info-circle') + '"></i><div class="notif-content"><p>' + n.message + '</p><span class="notif-time">' + (n.time || formatDate(n.createdAt)) + '</span></div></div>';
+                    }).join('');
+                }
+
+                // --- Update Notification Badge ---
+                var unreadCount = notifs.filter(function(n) { return n.unread; }).length;
+                document.getElementById('notifBadge').textContent = unreadCount > 0 ? unreadCount : '0';
+
+                // --- Update Profile Stats ---
+                document.getElementById('statApplications').textContent = apps.length;
+                document.getElementById('statPermits').textContent = permits.length;
+                document.getElementById('statCancelled').textContent = permits.filter(function(p) { return p.status === 'Cancelled' || p.status === 'Rejected'; }).length;
+                document.getElementById('statActive').textContent = permits.filter(function(p) { return p.status === 'Active' || p.status === 'Approved'; }).length;
+                document.getElementById('statExpired').textContent = permits.filter(function(p) { return p.status === 'Expired'; }).length;
+
+                // --- Update Activity List ---
+                var activityList = document.getElementById('activityList');
+                var activities = apps.slice(0, 5).map(function(a) {
+                    return { user: 'You', action: a.status === 'Pending' ? 'Filed' : a.status === 'Approved' ? 'Approved' : 'Updated', item: a.type || 'Application', date: formatDate(a.createdAt) };
+                });
+                permits.slice(0, 5).forEach(function(p) {
+                    activities.push({ user: 'You', action: 'Received', item: p.type || 'Permit', date: formatDate(p.createdAt) });
+                });
+                activities.sort(function(a, b) { return a.date > b.date ? -1 : a.date < b.date ? 1 : 0; });
+
+                if (activities.length === 0) {
+                    activityList.innerHTML = '<p style="color:#8a7a7a;text-align:center;padding:1rem;"><i class="fas fa-info-circle"></i> No recent activity. <a href="#" onclick="document.querySelector(\'[data-page=\'file-permit\']\').click(); return false;" style="color:#b31b1b;font-weight:600;">File a permit now</a></p>';
+                } else {
+                    activityList.innerHTML = activities.slice(0, 10).map(function(a) {
+                        return '<div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid #f0e6e6;font-size:0.8rem;"><span><strong>' + a.user + '</strong> ' + a.action + ' <strong>' + a.item + '</strong></span><span style="color:#8a7a7a;">' + a.date + '</span></div>';
+                    }).join('');
+                }
+
+                console.log('✅ Dashboard loaded successfully');
+
+            } catch (err) {
+                console.error('Error loading dashboard:', err);
+                document.getElementById('userGreeting').textContent = 'Welcome, User';
+            }
+        }
+
+        // ============================================================
+        // REAL-TIME LISTENERS
+        // ============================================================
+        function setupRealtimeListeners(uid) {
+            db.collection("applications")
+                .where("uid", "==", uid)
+                .orderBy("createdAt", "desc")
+                .onSnapshot(function() { loadDashboard(); });
+
+            db.collection("permits")
+                .where("uid", "==", uid)
+                .orderBy("createdAt", "desc")
+                .onSnapshot(function() { loadDashboard(); });
+
+            db.collection("notifications")
+                .where("uid", "==", uid)
+                .orderBy("createdAt", "desc")
+                .onSnapshot(function() { loadDashboard(); });
+        }
+
+        // ============================================================
+        // AUTH STATE CHECK
+        // ============================================================
+        auth.onAuthStateChanged(async function(user) {
+            if (!user) {
+                var adminLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
+                var userType = sessionStorage.getItem('userType');
+                var userEmail = sessionStorage.getItem('userEmail');
+
+                if (adminLoggedIn || userType === 'admin') {
+                    window.location.href = 'adminDashboard.html';
+                } else {
+                    window.location.href = 'index.html';
+                }
+                return;
+            }
+
+            // User is authenticated
+            var uid = user.uid;
+            sessionStorage.setItem('userUid', uid);
+
+            // Get user data
+            try {
+                var userDoc = await db.collection("users").doc(uid).get();
+                var userData = userDoc.data();
+                if (userData) {
+                    sessionStorage.setItem('userName', userData.name);
+                    sessionStorage.setItem('userEmail', userData.email);
+                    sessionStorage.setItem('userType', userData.user_type || 'user');
+                }
+            } catch (err) {
+                console.error('Error getting user data:', err);
+            }
+
+            // Load dashboard
+            await loadDashboard();
+
+            // Setup real-time listeners
+            setupRealtimeListeners(uid);
+
+            // Update active users
+            try {
+                var userDoc2 = await db.collection("users").doc(uid).get();
+                var userData2 = userDoc2.data();
+                if (userData2) {
+                    await db.collection("active_users").doc(uid).set({
+                        uid: uid,
+                        name: userData2.name,
+                        email: userData2.email,
+                        initials: getInitials(userData2.name),
+                        last_active: firebase.firestore.FieldValue.serverTimestamp(),
+                        status: "online"
+                    });
+                }
+            } catch (err) {
+                console.error('Error updating active users:', err);
+            }
+        });
+
+        // ============================================================
+        // REMOVE FROM ACTIVE USERS ON UNLOAD
+        // ============================================================
+        window.addEventListener('beforeunload', async function() {
+            try {
+                var uid = sessionStorage.getItem('userUid');
+                if (uid) {
+                    await db.collection("active_users").doc(uid).delete();
+                }
+            } catch (err) {
+                // Ignore errors on unload
+            }
+        });
+
+        // ============================================================
+        // LANGUAGE SELECTOR
+        // ============================================================
+        document.getElementById('languageSelect').addEventListener('change', function() {
+            var lang = this.value;
+            var langNames = {
+                en: 'English',
+                fil: 'Filipino',
+                ceb: 'Cebuano',
+                ilo: 'Ilocano',
+                hil: 'Hiligaynon',
+                war: 'Waray',
+                bcl: 'Bicolano'
+            };
+            alert('Language changed to: ' + (langNames[lang] || lang) + '\n(Translation feature coming soon!)');
+        });
+
+        console.log('🚀 User Dashboard with Firebase ready!');
     </script>
-    
-    <script src="dashboard.js"></script>
 </body>
 </html>

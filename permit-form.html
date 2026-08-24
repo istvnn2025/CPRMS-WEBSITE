@@ -7,13 +7,14 @@
     
     <!-- ===== 1. FONT AWESOME FIRST ===== -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
-    <link rel="stylesheet" href="dashboard.css" />
     
-    <!-- ===== 2. SUPABASE LIBRARY SECOND ===== -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- ===== 2. FIREBASE LIBRARIES (REPLACES SUPABASE) ===== -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
-    <!-- ===== 3. SUPABASE CONFIG THIRD ===== -->
-    <script src="supabase-config.js"></script>
+    <!-- ===== 3. FIREBASE CONFIG ===== -->
+    <script src="firebase-config.js"></script>
     
     <style>
         
@@ -777,6 +778,187 @@
         .permit-option {
             transition: all 0.2s ease;
         }
+
+        /* ===== SIDEBAR STYLES (from dashboard) ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            background: #f4f0f0;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: #b31b1b;
+            color: white;
+            padding: 1.5rem 1.2rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            flex-shrink: 0;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.08);
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            padding-bottom: 1.2rem;
+        }
+        .sidebar-brand .logo-circle-small img {
+            width: 44px;
+            height: 44px;
+            object-fit: cover;
+            border-radius: 50%;
+            background: white;
+            padding: 2px;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        .sidebar-brand .brand-name {
+            font-weight: 600;
+            font-size: 1rem;
+            letter-spacing: -0.2px;
+        }
+        .sidebar-nav { flex: 1; }
+        .sidebar-nav ul { list-style: none; }
+        .sidebar-nav li {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 0.7rem 1rem;
+            margin: 0.1rem 0;
+            border-radius: 40px;
+            color: rgba(255,255,255,0.8);
+            font-weight: 500;
+            transition: 0.2s;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .sidebar-nav li:hover,
+        .sidebar-nav li.active {
+            background: rgba(255,255,255,0.15);
+            color: white;
+        }
+        .sidebar-nav li i { width: 20px; font-size: 1rem; }
+        .sidebar-nav li .badge {
+            margin-left: auto;
+            background: #ffd966;
+            color: #1f1414;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 0.05rem 0.6rem;
+            border-radius: 40px;
+        }
+        .sidebar-footer {
+            margin-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.12);
+            padding-top: 1rem;
+        }
+        .sidebar-footer button {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            padding: 0.6rem 1rem;
+            border-radius: 40px;
+            transition: 0.2s;
+            font-weight: 500;
+            cursor: pointer;
+            background: none;
+            border: none;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+        .sidebar-footer button:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 0;
+            background: #faf8f8;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .top-header {
+            background: white;
+            padding: 0.7rem 2.5rem;
+            border-bottom: 1px solid #f0e6e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+        .top-header .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .top-header .header-left .menu-btn {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            color: #b31b1b;
+            cursor: pointer;
+            display: none;
+        }
+        .top-header .header-left h2 { font-size: 1.2rem; color: #1f1414; }
+        .top-header .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .top-header .header-right .user-greeting {
+            font-size: 0.85rem;
+            color: #755a5a;
+        }
+        .top-header .header-right .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #b31b1b;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .content-area { padding: 1.5rem 2.5rem; flex: 1; }
+        .page-content { display: none; }
+        .page-content.active { display: block; }
+
+        @media (max-width: 850px) {
+            .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100vh; z-index: 999; padding-top: 4rem; }
+            .sidebar.open { left: 0; }
+            .top-header .header-left .menu-btn { display: block; }
+            .top-header { padding: 0.5rem 1rem; padding-left: 3.5rem; }
+            .content-area { padding: 1rem; }
+        }
+        @media (max-width: 550px) {
+            .top-header .header-right .user-greeting { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -990,8 +1172,8 @@
             "use strict";
 
             // ===== CHECK IF USER IS LOGGED IN =====
-            const userEmail = sessionStorage.getItem('userEmail');
-            if (!userEmail) {
+            const userUid = sessionStorage.getItem('userUid');
+            if (!userUid) {
                 alert('Please login first.');
                 window.location.href = 'index.html';
                 return;
@@ -1122,7 +1304,7 @@
                 element.style.transition = 'all 0.1s ease';
                 element.style.transform = 'scale(0.95)';
                 element.style.borderColor = '#b31b1b';
-                setTimeout(() => {
+                setTimeout(function() {
                     element.style.transform = 'scale(1)';
                     element.style.borderColor = '#f0e6e6';
                 }, 150);
@@ -1190,13 +1372,13 @@
             // UPDATE NAVIGATION
             // ============================================================
             function updateNavigation() {
-                pageIndicator.textContent = `Page ${currentPage + 1} / ${totalPages}`;
+                pageIndicator.textContent = 'Page ' + (currentPage + 1) + ' / ' + totalPages;
                 prevBtn.disabled = (currentPage === 0);
                 nextBtn.disabled = (currentPage === totalPages - 1);
 
-                let dotsHtml = '';
-                for (let i = 0; i < totalPages; i++) {
-                    dotsHtml += `<button class="page-dot ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})"></button>`;
+                var dotsHtml = '';
+                for (var i = 0; i < totalPages; i++) {
+                    dotsHtml += '<button class="page-dot ' + (i === currentPage ? 'active' : '') + '" onclick="goToPage(' + i + ')"></button>';
                 }
                 pageDots.innerHTML = dotsHtml;
             }
@@ -1223,16 +1405,16 @@
             overlay.addEventListener('click', function(e) {
                 if (e.target.closest('.editable-field')) return;
 
-                const imgRect = img.getBoundingClientRect();
-                const imgX = e.clientX - imgRect.left;
-                const imgY = e.clientY - imgRect.top;
+                var imgRect = img.getBoundingClientRect();
+                var imgX = e.clientX - imgRect.left;
+                var imgY = e.clientY - imgRect.top;
 
                 if (imgX >= 0 && imgX <= imgRect.width && imgY >= 0 && imgY <= imgRect.height) {
-                    const percentX = (imgX / imgRect.width) * 100;
-                    const percentY = (imgY / imgRect.height) * 100;
+                    var percentX = (imgX / imgRect.width) * 100;
+                    var percentY = (imgY / imgRect.height) * 100;
                     createEditableField(percentX, percentY);
 
-                    const promptEl = document.getElementById('addTextPrompt');
+                    var promptEl = document.getElementById('addTextPrompt');
                     if (promptEl) promptEl.classList.add('hidden');
                 }
             });
@@ -1240,8 +1422,9 @@
             // ============================================================
             // CREATE EDITABLE FIELD - Center-aligned
             // ============================================================
-            function createEditableField(x, y, text = '') {
-                const div = document.createElement('div');
+            function createEditableField(x, y, text) {
+                text = text || '';
+                var div = document.createElement('div');
                 div.className = 'editable-field';
                 div.contentEditable = true;
                 div.style.left = x + '%';
@@ -1250,7 +1433,7 @@
                 div.dataset.fieldId = 'field-' + (++fieldCounter);
 
                 // Delete button
-                const deleteBtn = document.createElement('button');
+                var deleteBtn = document.createElement('button');
                 deleteBtn.className = 'delete-btn';
                 deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
                 deleteBtn.addEventListener('click', function(e) {
@@ -1258,7 +1441,7 @@
                     div.remove();
                     saveEdits();
                     if (document.querySelectorAll('.editable-field').length === 0) {
-                        const promptEl = document.getElementById('addTextPrompt');
+                        var promptEl = document.getElementById('addTextPrompt');
                         if (promptEl) promptEl.classList.remove('hidden');
                     }
                 });
@@ -1266,9 +1449,9 @@
 
                 // Auto-focus and select
                 div.addEventListener('focus', function() {
-                    const range = document.createRange();
+                    var range = document.createRange();
                     range.selectNodeContents(this);
-                    const sel = window.getSelection();
+                    var sel = window.getSelection();
                     sel.removeAllRanges();
                     sel.addRange(range);
                 });
@@ -1286,11 +1469,11 @@
                 overlay.appendChild(div);
 
                 // Focus and select
-                setTimeout(() => {
+                setTimeout(function() {
                     div.focus();
-                    const range = document.createRange();
+                    var range = document.createRange();
                     range.selectNodeContents(div);
-                    const sel = window.getSelection();
+                    var sel = window.getSelection();
                     sel.removeAllRanges();
                     sel.addRange(range);
                 }, 100);
@@ -1302,8 +1485,8 @@
             // SAVE AND LOAD DATA
             // ============================================================
             window.saveEdits = function() {
-                const fields = [];
-                document.querySelectorAll('.editable-field').forEach(el => {
+                var fields = [];
+                document.querySelectorAll('.editable-field').forEach(function(el) {
                     fields.push({
                         x: parseFloat(el.style.left) || 0,
                         y: parseFloat(el.style.top) || 0,
@@ -1314,7 +1497,7 @@
                     });
                 });
 
-                const key = currentPermitType + '_page_' + currentPage;
+                var key = currentPermitType + '_page_' + currentPage;
                 if (!savedData[key]) savedData[key] = {};
                 savedData[key].fields = fields;
 
@@ -1322,18 +1505,18 @@
             };
 
             function loadSavedData(permitType) {
-                const promptEl = document.getElementById('addTextPrompt');
+                var promptEl = document.getElementById('addTextPrompt');
                 overlay.innerHTML = '';
                 if (promptEl) {
                     overlay.appendChild(promptEl);
                 }
 
-                const key = permitType + '_page_' + currentPage;
-                const data = savedData[key];
+                var key = permitType + '_page_' + currentPage;
+                var data = savedData[key];
 
                 if (data && data.fields) {
-                    data.fields.forEach(fieldData => {
-                        const div = document.createElement('div');
+                    data.fields.forEach(function(fieldData) {
+                        var div = document.createElement('div');
                         div.className = 'editable-field';
                         div.contentEditable = true;
                         div.style.left = fieldData.x + '%';
@@ -1343,7 +1526,7 @@
                         div.textContent = fieldData.text || '';
                         div.dataset.fieldId = 'field-' + (++fieldCounter);
 
-                        const deleteBtn = document.createElement('button');
+                        var deleteBtn = document.createElement('button');
                         deleteBtn.className = 'delete-btn';
                         deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
                         deleteBtn.addEventListener('click', function(e) {
@@ -1351,16 +1534,16 @@
                             div.remove();
                             saveEdits();
                             if (document.querySelectorAll('.editable-field').length === 0) {
-                                const promptEl2 = document.getElementById('addTextPrompt');
+                                var promptEl2 = document.getElementById('addTextPrompt');
                                 if (promptEl2) promptEl2.classList.remove('hidden');
                             }
                         });
                         div.appendChild(deleteBtn);
 
                         div.addEventListener('focus', function() {
-                            const range = document.createRange();
+                            var range = document.createRange();
                             range.selectNodeContents(this);
-                            const sel = window.getSelection();
+                            var sel = window.getSelection();
                             sel.removeAllRanges();
                             sel.addRange(range);
                         });
@@ -1377,7 +1560,7 @@
                     });
 
                     if (data.fields.length > 0) {
-                        const promptEl2 = document.getElementById('addTextPrompt');
+                        var promptEl2 = document.getElementById('addTextPrompt');
                         if (promptEl2) promptEl2.classList.add('hidden');
                     }
                 }
@@ -1388,44 +1571,44 @@
             // ============================================================
             window.clearAllFields = function() {
                 if (!confirm('Clear all fields on this page?')) return;
-                document.querySelectorAll('.editable-field').forEach(el => el.remove());
-                const promptEl = document.getElementById('addTextPrompt');
+                document.querySelectorAll('.editable-field').forEach(function(el) { el.remove(); });
+                var promptEl = document.getElementById('addTextPrompt');
                 if (promptEl) promptEl.classList.remove('hidden');
                 saveEdits();
             };
 
             // ============================================================
-            // SUBMIT PERMIT - FIXED with proper timestamp for notifications
+            // SUBMIT PERMIT - FIREBASE VERSION
             // ============================================================
             window.submitPermit = function() {
                 saveEdits();
 
                 // Collect all fields from all pages
-                let allFields = [];
-                for (let key in savedData) {
+                var allFields = [];
+                for (var key in savedData) {
                     if (savedData[key] && savedData[key].fields) {
-                        savedData[key].fields.forEach(f => {
+                        savedData[key].fields.forEach(function(f) {
                             allFields.push(f);
                         });
                     }
                 }
 
-                const permitData = permitImages[currentPermitType];
-                const displayName = permitData ? permitData.name : currentPermitName;
-                const userName = sessionStorage.getItem('userName') || 'User';
-                const userEmail = sessionStorage.getItem('userEmail') || 'user@email.com';
-                const now = new Date();
-                const today = now.toISOString().split('T')[0];
-                const nowFormatted = formatDateTime(now);
-                const timestamp = now.toISOString();
+                var permitData = permitImages[currentPermitType];
+                var displayName = permitData ? permitData.name : currentPermitName;
+                var userName = sessionStorage.getItem('userName') || 'User';
+                var userEmail = sessionStorage.getItem('userEmail') || 'user@email.com';
+                var uid = sessionStorage.getItem('userUid');
+                var now = new Date();
+                var today = now.toISOString().split('T')[0];
+                var nowFormatted = formatDateTime(now);
 
                 // Generate Application ID
-                const appId = 'APP-2026-' + String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+                var appId = 'APP-2026-' + String(Math.floor(Math.random() * 1000)).padStart(3, '0');
 
                 // ============================================================
                 // 1. CREATE APPLICATION DATA
                 // ============================================================
-                const newApplication = {
+                var newApplication = {
                     appId: appId,
                     type: displayName,
                     permitType: currentPermitType,
@@ -1433,79 +1616,82 @@
                     status: 'Pending',
                     applicant: userName,
                     email: userEmail,
-                    description: allFields.map(f => f.text).join(', ') || 'No details provided',
+                    uid: uid,
+                    description: allFields.map(function(f) { return f.text; }).join(', ') || 'No details provided',
                     location: 'Pagbilao, Quezon',
                     additionalInfo: 'Fields: ' + allFields.length,
                     fields: allFields,
                     totalPages: totalPages,
-                    timestamp: timestamp
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
 
                 // ============================================================
-                // 2. SAVE APPLICATION TO localStorage
+                // 2. SAVE APPLICATION TO FIRESTORE
                 // ============================================================
-                const applications = JSON.parse(localStorage.getItem('userApplications') || '[]');
-                applications.unshift(newApplication);
-                localStorage.setItem('userApplications', JSON.stringify(applications));
+                db.collection("applications").add(newApplication)
+                    .then(function(docRef) {
+                        console.log('✅ Application created with ID:', docRef.id);
 
-                // ============================================================
-                // 3. CREATE PENDING PERMIT
-                // ============================================================
-                const pendingPermit = {
-                    permitNo: '⏳ Pending',
-                    type: displayName,
-                    dateIssued: '—',
-                    expiryDate: '—',
-                    status: 'Pending',
-                    applicant: userName,
-                    email: userEmail,
-                    appId: appId,
-                    isPending: true,
-                    archived: false,
-                    created: timestamp
-                };
+                        // ============================================================
+                        // 3. CREATE PENDING PERMIT
+                        // ============================================================
+                        var pendingPermit = {
+                            permitNo: '⏳ Pending',
+                            type: displayName,
+                            dateIssued: '—',
+                            expiryDate: '—',
+                            status: 'Pending',
+                            applicant: userName,
+                            email: userEmail,
+                            uid: uid,
+                            appId: appId,
+                            isPending: true,
+                            archived: false,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
 
-                const permits = JSON.parse(localStorage.getItem('userPermits') || '[]');
-                permits.unshift(pendingPermit);
-                localStorage.setItem('userPermits', JSON.stringify(permits));
+                        return db.collection("permits").add(pendingPermit);
+                    })
+                    .then(function(permitRef) {
+                        console.log('✅ Pending permit created with ID:', permitRef.id);
 
-                console.log('✅ Application created:', newApplication);
-                console.log('✅ Pending permit created:', pendingPermit);
-                console.log('📋 Total permits now:', permits.length);
+                        // ============================================================
+                        // 4. ADD NOTIFICATION
+                        // ============================================================
+                        return db.collection("notifications").add({
+                            uid: uid,
+                            icon: 'blue',
+                            iconClass: 'fa-info-circle',
+                            message: 'You filed a new <strong>' + displayName + '</strong> application (' + appId + ')',
+                            time: nowFormatted,
+                            unread: true,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    })
+                    .then(function(notifRef) {
+                        console.log('✅ Notification created with ID:', notifRef.id);
 
-                // ============================================================
-                // 4. ADD NOTIFICATION WITH PROPER TIMESTAMP - FIXED!
-                // ============================================================
-                const notifications = JSON.parse(localStorage.getItem('userNotifications') || '[]');
-                notifications.unshift({
-                    id: Date.now(),
-                    icon: 'blue',
-                    iconClass: 'fa-info-circle',
-                    message: 'You filed a new <strong>' + displayName + '</strong> application (' + appId + ')',
-                    time: nowFormatted,
-                    timestamp: timestamp,
-                    unread: true
-                });
-                localStorage.setItem('userNotifications', JSON.stringify(notifications));
+                        // ============================================================
+                        // 5. SHOW SUCCESS MODAL
+                        // ============================================================
+                        closeImageViewer();
 
-                // ============================================================
-                // 5. SHOW SUCCESS MODAL
-                // ============================================================
-                closeImageViewer();
+                        document.getElementById('successMessage').textContent = 'Your ' + displayName + ' application has been submitted successfully.';
+                        document.getElementById('appIdDisplay').textContent = 'Application ID: ' + appId + ' | Status: Pending';
+                        successOverlay.classList.add('active');
 
-                document.getElementById('successMessage').textContent = 'Your ' + displayName + ' application has been submitted successfully.';
-                document.getElementById('appIdDisplay').textContent = 'Application ID: ' + appId + ' | Status: Pending';
-                successOverlay.classList.add('active');
+                        console.log('✅ Application submitted:', appId);
+                        console.log('📝 Fields saved:', allFields.length);
 
-                console.log('✅ Application submitted:', appId);
-                console.log('📝 Fields saved:', allFields.length);
-                console.log('✅ Pending permit added to My Permits!');
-                console.log('🔔 Notification created with timestamp:', timestamp);
-
-                // Redirect after delay
-                setTimeout(function() {
-                    window.location.href = 'dashboard.html?success=submitted';
-                }, 3000);
+                        // Redirect after delay
+                        setTimeout(function() {
+                            window.location.href = 'dashboard.html?success=submitted';
+                        }, 3000);
+                    })
+                    .catch(function(err) {
+                        console.error('❌ Submit error:', err);
+                        alert('Error submitting application: ' + err.message);
+                    });
             };
 
             // ============================================================
@@ -1559,28 +1745,43 @@
             // ============================================================
             // SIDEBAR NAVIGATION
             // ============================================================
-            const navItems = document.querySelectorAll('.sidebar-nav li');
+            var navItems = document.querySelectorAll('.sidebar-nav li');
             navItems.forEach(function(item) {
                 item.addEventListener('click', function() {
-                    const page = this.dataset.page;
+                    var page = this.dataset.page;
                     if (page === 'file-permit') return;
                     window.location.href = 'dashboard.html';
                 });
             });
 
             // ============================================================
-            // LOGOUT
+            // LOGOUT - FIREBASE VERSION
             // ============================================================
-            const logoutBtn = document.getElementById('logoutBtn');
+            var logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', function() {
                     if (confirm('Are you sure you want to logout?')) {
-                        const activeUsers = JSON.parse(localStorage.getItem('activeUsers') || '[]');
-                        const updated = activeUsers.filter(function(u) { return u.email !== userEmail; });
-                        localStorage.setItem('activeUsers', JSON.stringify(updated));
-                        sessionStorage.clear();
-                        alert('Logging out...');
-                        window.location.href = 'index.html';
+                        var uid = sessionStorage.getItem('userUid');
+                        if (uid) {
+                            db.collection("active_users").doc(uid).delete()
+                                .then(function() {
+                                    return auth.signOut();
+                                })
+                                .then(function() {
+                                    sessionStorage.clear();
+                                    window.location.href = 'index.html';
+                                })
+                                .catch(function(err) {
+                                    console.error('Logout error:', err);
+                                    sessionStorage.clear();
+                                    window.location.href = 'index.html';
+                                });
+                        } else {
+                            auth.signOut().then(function() {
+                                sessionStorage.clear();
+                                window.location.href = 'index.html';
+                            });
+                        }
                     }
                 });
             }
@@ -1588,8 +1789,8 @@
             // ============================================================
             // TOGGLE SIDEBAR
             // ============================================================
-            const toggleBtn = document.getElementById('toggleSidebar');
-            const sidebar = document.getElementById('sidebar');
+            var toggleBtn = document.getElementById('toggleSidebar');
+            var sidebar = document.getElementById('sidebar');
             if (toggleBtn) {
                 toggleBtn.addEventListener('click', function() {
                     sidebar.classList.toggle('open');
@@ -1599,8 +1800,8 @@
             // ============================================================
             // USER GREETING
             // ============================================================
-            const userGreeting = document.getElementById('userGreeting');
-            const userName = sessionStorage.getItem('userName') || 'User';
+            var userGreeting = document.getElementById('userGreeting');
+            var userName = sessionStorage.getItem('userName') || 'User';
             if (userGreeting) {
                 userGreeting.textContent = 'Welcome, ' + userName;
             }
@@ -1608,22 +1809,33 @@
             // ============================================================
             // UPDATE NOTIFICATION BADGE
             // ============================================================
-            const notifBadge = document.getElementById('notifBadge');
+            var notifBadge = document.getElementById('notifBadge');
             if (notifBadge) {
-                const notifications = JSON.parse(localStorage.getItem('userNotifications') || '[]');
-                const unreadCount = notifications.filter(function(n) { return n.unread; }).length;
-                notifBadge.textContent = unreadCount > 0 ? unreadCount : '0';
+                var uid = sessionStorage.getItem('userUid');
+                if (uid) {
+                    db.collection("notifications")
+                        .where("uid", "==", uid)
+                        .where("unread", "==", true)
+                        .get()
+                        .then(function(snapshot) {
+                            var unreadCount = snapshot.size;
+                            notifBadge.textContent = unreadCount > 0 ? unreadCount : '0';
+                        })
+                        .catch(function(err) {
+                            console.error('Error getting notifications:', err);
+                        });
+                }
             }
 
             // ============================================================
             // SETUP PAGE
             // ============================================================
-            const mainPermitType = sessionStorage.getItem('permitType') || 'building';
-            const mainPermitName = sessionStorage.getItem('permitName') || 'Building Permit';
-            const buildingSection = document.getElementById('buildingPermitsSection');
-            const occupancySection = document.getElementById('occupancyPermitsSection');
-            const pageTitle = document.getElementById('pageTitle');
-            const permitTypeDisplay = document.getElementById('permitTypeDisplay');
+            var mainPermitType = sessionStorage.getItem('permitType') || 'building';
+            var mainPermitName = sessionStorage.getItem('permitName') || 'Building Permit';
+            var buildingSection = document.getElementById('buildingPermitsSection');
+            var occupancySection = document.getElementById('occupancyPermitsSection');
+            var pageTitle = document.getElementById('pageTitle');
+            var permitTypeDisplay = document.getElementById('permitTypeDisplay');
 
             pageTitle.textContent = 'File Permit - ' + mainPermitName;
             if (permitTypeDisplay) {
@@ -1641,9 +1853,17 @@
                 occupancySection.style.display = 'none';
             }
 
-            console.log('✅ Permit Form ready');
-            console.log('✅ Will create pending permit in userPermits on submit');
-            console.log('Data flow: Form → localStorage → My Permits (Pending) → Admin Review → My Permits (Active)');
+            // ============================================================
+            // AUTH STATE CHECK
+            // ============================================================
+            auth.onAuthStateChanged(function(user) {
+                if (!user) {
+                    window.location.href = 'index.html';
+                }
+            });
+
+            console.log('✅ Permit Form with Firebase ready');
+            console.log('Data flow: Form → Firebase → My Permits (Pending) → Admin Review → My Permits (Active)');
 
         })();
     </script>
