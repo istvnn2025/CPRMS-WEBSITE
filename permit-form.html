@@ -2,19 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Pagbilao · Permit Form</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pagbilao · Permit Dashboard</title>
     
-    <!-- ===== 1. FONT AWESOME FIRST ===== -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
-    
-    <!-- ===== 2. FIREBASE LIBRARIES (REPLACES SUPABASE) ===== -->
+    <!-- ===== 1. FIREBASE LIBRARIES (REPLACES SUPABASE) ===== -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
-    <!-- ===== 3. FIREBASE CONFIG ===== -->
+    <!-- ===== 2. FIREBASE CONFIG ===== -->
     <script src="firebase-config.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link rel="stylesheet" href="dashboard.css" />
+</head>
     
     <style>
         
@@ -220,46 +220,91 @@
             cursor: crosshair;
         }
 
+        /* Borderless and transparent background draggable field with font size controls */
         .editable-field {
             position: absolute;
             pointer-events: auto;
-            cursor: text;
             min-width: 40px;
-            min-height: 30px;
-            padding: 2px 6px;
-            font-size: 14px;
-            font-family: Arial, sans-serif;
-            color: #1f1414;
             background: transparent;
             border: none;
             outline: none;
             z-index: 10;
-            line-height: 1.4;
-            white-space: nowrap;
-            overflow: visible;
-            caret-color: #1f1414;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top drag handle indicator with font size controls */
+        .drag-handle {
+            width: 100%;
+            height: 18px;
+            background: rgba(179, 27, 27, 0.85);
+            color: white;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 4px;
+            font-size: 9px;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            touch-action: none;
+            user-select: none;
+            flex-shrink: 0;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .handle-actions {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .font-resize-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 10px;
+            padding: 0 3px;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .font-resize-btn:hover {
+            opacity: 0.7;
+        }
+
+        .field-content {
+            padding: 2px 4px;
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+            color: #1f1414;
+            outline: none;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
-            transform: translate(-50%, -50%);
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: transparent;
+            caret-color: #1f1414;
         }
 
-        .editable-field:focus {
-            background: rgba(0, 0, 0, 0.03);
-            border: none;
-            outline: none;
-        }
-
-        .editable-field:hover {
-            border: none;
-            background: rgba(0, 0, 0, 0.02);
+        .editable-field.check-box-field .field-content {
+            font-size: 18px;
+            font-weight: bold;
+            color: #000000;
+            cursor: default;
         }
 
         .editable-field .delete-btn {
             position: absolute;
-            top: -14px;
-            right: -14px;
+            top: -12px;
+            right: -12px;
             width: 20px;
             height: 20px;
             background: #dc3545;
@@ -310,6 +355,36 @@
             display: none;
         }
 
+        /* Mode selector buttons in controls */
+        .mode-selector {
+            display: flex;
+            gap: 4px;
+            background: #eee;
+            padding: 3px;
+            border-radius: 8px;
+        }
+
+        .mode-btn {
+            background: transparent;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: #555;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mode-btn.active {
+            background: #b31b1b;
+            color: white;
+            box-shadow: 0 2px 6px rgba(179,27,27,0.3);
+        }
+
         /* Image controls - sticky bottom */
         .image-controls {
             display: flex;
@@ -319,17 +394,17 @@
             border-top: 2px solid #f0e6e6;
             flex-wrap: wrap;
             justify-content: center;
+            align-items: center;
             flex-shrink: 0;
             z-index: 10;
             position: sticky;
             bottom: 0;
             left: 0;
             right: 0;
-            background: #f8f5f5;
         }
 
-        .image-controls button {
-            padding: 0.6rem 1.5rem;
+        .image-controls button.action-btn {
+            padding: 0.6rem 1.2rem;
             border: none;
             border-radius: 8px;
             font-weight: 600;
@@ -486,9 +561,75 @@
             transform: translateY(-2px);
         }
 
+        /* ===== BUILDING / OCCUPANCY TOGGLE ===== */
+        .permit-category-toggle {
+            display: flex;
+            gap: 0.6rem;
+            margin-bottom: 1.5rem;
+            padding: 0.35rem;
+            background: #f8f5f5;
+            border: 1px solid #f0e6e6;
+            border-radius: 12px;
+            width: fit-content;
+        }
+
+        .permit-category-toggle button {
+            border: none;
+            background: transparent;
+            color: #6b5a5a;
+            padding: 0.7rem 1.4rem;
+            border-radius: 9px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .permit-category-toggle button:hover {
+            color: #b31b1b;
+            background: #fef7f7;
+        }
+
+        .permit-category-toggle button.active {
+            background: #b31b1b;
+            color: white;
+            box-shadow: 0 3px 10px rgba(179, 27, 27, 0.18);
+        }
+
+        @media (max-width: 850px) {
+            .permit-category-toggle {
+                width: 100%;
+            }
+
+            .permit-category-toggle button {
+                flex: 1;
+                justify-content: center;
+                padding: 0.65rem 0.8rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .permit-category-toggle {
+                margin-bottom: 1rem;
+                gap: 0.35rem;
+                padding: 0.25rem;
+                border-radius: 9px;
+            }
+
+            .permit-category-toggle button {
+                padding: 0.55rem 0.5rem;
+                font-size: 0.72rem;
+                gap: 5px;
+            }
+        }
+
         /* ============================================================
-           RESPONSIVE - MOBILE VIEW
-           ============================================================ */
+            RESPONSIVE - MOBILE VIEW
+            ============================================================ */
 
         @media (max-width: 850px) {
             .permit-form-container {
@@ -551,24 +692,22 @@
                 gap: 0.5rem;
             }
 
-            .image-controls button {
+            .image-controls button.action-btn {
                 padding: 0.4rem 0.9rem;
                 font-size: 0.75rem;
             }
 
-            .editable-field {
+            .field-content {
                 font-size: 12px;
-                min-height: 24px;
-                min-width: 30px;
-                padding: 2px 4px;
+                min-height: 20px;
             }
 
             .editable-field .delete-btn {
                 width: 16px;
                 height: 16px;
                 font-size: 8px;
-                top: -12px;
-                right: -12px;
+                top: -10px;
+                right: -10px;
             }
 
             .add-text-prompt {
@@ -660,7 +799,7 @@
                 padding: 0.5rem 0.5rem 4rem 0.5rem;
             }
 
-            .image-controls button {
+            .image-controls button.action-btn {
                 font-size: 0.65rem;
                 padding: 0.3rem 0.7rem;
                 border-radius: 6px;
@@ -671,11 +810,9 @@
                 gap: 0.4rem;
             }
 
-            .editable-field {
+            .field-content {
                 font-size: 10px;
-                min-height: 20px;
-                min-width: 20px;
-                padding: 1px 3px;
+                min-height: 18px;
             }
 
             .editable-field .delete-btn {
@@ -757,7 +894,7 @@
                 gap: 0.3rem;
             }
 
-            .image-controls button {
+            .image-controls button.action-btn {
                 padding: 0.2rem 0.5rem;
                 font-size: 0.6rem;
             }
@@ -765,7 +902,7 @@
 
         /* Prevent zoom on focus for iOS */
         @supports (-webkit-touch-callout: none) {
-            input, select, textarea, .editable-field {
+            input, select, textarea, .field-content {
                 font-size: 16px !important;
             }
         }
@@ -777,187 +914,6 @@
 
         .permit-option {
             transition: all 0.2s ease;
-        }
-
-        /* ===== SIDEBAR STYLES (from dashboard) ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
-        }
-        body {
-            background: #f4f0f0;
-            min-height: 100vh;
-            display: flex;
-        }
-
-        .sidebar {
-            width: 260px;
-            background: #b31b1b;
-            color: white;
-            padding: 1.5rem 1.2rem;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            overflow-y: auto;
-            flex-shrink: 0;
-            box-shadow: 4px 0 20px rgba(0,0,0,0.08);
-            z-index: 100;
-            transition: transform 0.3s ease;
-        }
-        .sidebar-brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.15);
-            padding-bottom: 1.2rem;
-        }
-        .sidebar-brand .logo-circle-small img {
-            width: 44px;
-            height: 44px;
-            object-fit: cover;
-            border-radius: 50%;
-            background: white;
-            padding: 2px;
-            border: 2px solid rgba(255,255,255,0.3);
-        }
-        .sidebar-brand .brand-name {
-            font-weight: 600;
-            font-size: 1rem;
-            letter-spacing: -0.2px;
-        }
-        .sidebar-nav { flex: 1; }
-        .sidebar-nav ul { list-style: none; }
-        .sidebar-nav li {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 0.7rem 1rem;
-            margin: 0.1rem 0;
-            border-radius: 40px;
-            color: rgba(255,255,255,0.8);
-            font-weight: 500;
-            transition: 0.2s;
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-        .sidebar-nav li:hover,
-        .sidebar-nav li.active {
-            background: rgba(255,255,255,0.15);
-            color: white;
-        }
-        .sidebar-nav li i { width: 20px; font-size: 1rem; }
-        .sidebar-nav li .badge {
-            margin-left: auto;
-            background: #ffd966;
-            color: #1f1414;
-            font-size: 0.6rem;
-            font-weight: 700;
-            padding: 0.05rem 0.6rem;
-            border-radius: 40px;
-        }
-        .sidebar-footer {
-            margin-top: 1rem;
-            border-top: 1px solid rgba(255,255,255,0.12);
-            padding-top: 1rem;
-        }
-        .sidebar-footer button {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: rgba(255,255,255,0.7);
-            text-decoration: none;
-            padding: 0.6rem 1rem;
-            border-radius: 40px;
-            transition: 0.2s;
-            font-weight: 500;
-            cursor: pointer;
-            background: none;
-            border: none;
-            width: 100%;
-            font-size: 0.9rem;
-        }
-        .sidebar-footer button:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
-
-        .main-content {
-            flex: 1;
-            padding: 0;
-            background: #faf8f8;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-        }
-
-        .top-header {
-            background: white;
-            padding: 0.7rem 2.5rem;
-            border-bottom: 1px solid #f0e6e6;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-            flex-wrap: wrap;
-            gap: 0.8rem;
-        }
-        .top-header .header-left {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-        .top-header .header-left .menu-btn {
-            background: none;
-            border: none;
-            font-size: 1.3rem;
-            color: #b31b1b;
-            cursor: pointer;
-            display: none;
-        }
-        .top-header .header-left h2 { font-size: 1.2rem; color: #1f1414; }
-        .top-header .header-right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        .top-header .header-right .user-greeting {
-            font-size: 0.85rem;
-            color: #755a5a;
-        }
-        .top-header .header-right .avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: #b31b1b;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-        }
-
-        .content-area { padding: 1.5rem 2.5rem; flex: 1; }
-        .page-content { display: none; }
-        .page-content.active { display: block; }
-
-        @media (max-width: 850px) {
-            .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100vh; z-index: 999; padding-top: 4rem; }
-            .sidebar.open { left: 0; }
-            .top-header .header-left .menu-btn { display: block; }
-            .top-header { padding: 0.5rem 1rem; padding-left: 3.5rem; }
-            .content-area { padding: 1rem; }
-        }
-        @media (max-width: 550px) {
-            .top-header .header-right .user-greeting { display: none; }
         }
     </style>
 </head>
@@ -1039,6 +995,18 @@
                             <i class="fas fa-arrow-left"></i> Back
                         </button>
                         <span style="margin-left:auto; font-weight:600; color:#b31b1b;" id="permitTypeDisplay">Building Permit</span>
+                    </div>
+
+                    <!-- ===== BUILDING / OCCUPANCY TOGGLE ===== -->
+                    <div class="permit-category-toggle" role="tablist" aria-label="Permit category">
+                        <button type="button" id="buildingToggle" class="active" onclick="switchPermitCategory('building')" role="tab" aria-selected="true">
+                            <i class="fas fa-building"></i>
+                            Building
+                        </button>
+                        <button type="button" id="occupancyToggle" onclick="switchPermitCategory('occupancy')" role="tab" aria-selected="false">
+                            <i class="fas fa-home"></i>
+                            Occupancy
+                        </button>
                     </div>
 
                     <!-- Building Permits Section -->
@@ -1135,19 +1103,29 @@
                 </div>
             </div>
             <div class="image-controls">
-                <button class="front-btn" onclick="changePage(-1)" id="prevPageBtn">
+                <!-- Mode Option Button -->
+                <div class="mode-selector" role="toolbar" aria-label="Insertion mode">
+                    <button type="button" class="mode-btn active" id="modeTextBtn" onclick="setInsertMode('text')">
+                        <i class="fas fa-font"></i> Text
+                    </button>
+                    <button type="button" class="mode-btn" id="modeCheckBtn" onclick="setInsertMode('check')">
+                        <i class="fas fa-check"></i> Check (✔)
+                    </button>
+                </div>
+
+                <button class="action-btn front-btn" onclick="changePage(-1)" id="prevPageBtn">
                     <i class="fas fa-arrow-left"></i> Prev
                 </button>
-                <button class="back-btn-img" onclick="changePage(1)" id="nextPageBtn">
+                <button class="action-btn back-btn-img" onclick="changePage(1)" id="nextPageBtn">
                     Next <i class="fas fa-arrow-right"></i>
                 </button>
-                <button class="save-btn" onclick="saveEdits()">
+                <button class="action-btn save-btn" onclick="saveEdits()">
                     <i class="fas fa-save"></i> Save
                 </button>
-                <button class="clear-btn" onclick="clearAllFields()">
+                <button class="action-btn clear-btn" onclick="clearAllFields()">
                     <i class="fas fa-trash"></i> Clear
                 </button>
-                <button class="submit-btn" onclick="submitPermit()">
+                <button class="action-btn submit-btn" onclick="submitPermit()">
                     <i class="fas fa-paper-plane"></i> Submit
                 </button>
             </div>
@@ -1172,8 +1150,8 @@
             "use strict";
 
             // ===== CHECK IF USER IS LOGGED IN =====
-            const userUid = sessionStorage.getItem('userUid');
-            if (!userUid) {
+            const userEmail = sessionStorage.getItem('userEmail');
+            if (!userEmail) {
                 alert('Please login first.');
                 window.location.href = 'index.html';
                 return;
@@ -1277,6 +1255,7 @@
             let totalPages = 0;
             let savedData = {};
             let fieldCounter = 0;
+            let currentInsertMode = 'text'; // 'text' or 'check'
 
             // DOM Elements
             const viewer = document.getElementById('imageViewer');
@@ -1288,6 +1267,19 @@
             const prevBtn = document.getElementById('prevPageBtn');
             const nextBtn = document.getElementById('nextPageBtn');
             const successOverlay = document.getElementById('successOverlay');
+
+            // ============================================================
+            // SET INSERT MODE (TEXT vs CHECK)
+            // ============================================================
+            window.setInsertMode = function(mode) {
+                currentInsertMode = mode;
+                const textBtn = document.getElementById('modeTextBtn');
+                const checkBtn = document.getElementById('modeCheckBtn');
+                if (textBtn && checkBtn) {
+                    textBtn.classList.toggle('active', mode === 'text');
+                    checkBtn.classList.toggle('active', mode === 'check');
+                }
+            };
 
             // ============================================================
             // HANDLE PERMIT CLICK
@@ -1304,7 +1296,7 @@
                 element.style.transition = 'all 0.1s ease';
                 element.style.transform = 'scale(0.95)';
                 element.style.borderColor = '#b31b1b';
-                setTimeout(function() {
+                setTimeout(() => {
                     element.style.transform = 'scale(1)';
                     element.style.borderColor = '#f0e6e6';
                 }, 150);
@@ -1372,13 +1364,13 @@
             // UPDATE NAVIGATION
             // ============================================================
             function updateNavigation() {
-                pageIndicator.textContent = 'Page ' + (currentPage + 1) + ' / ' + totalPages;
+                pageIndicator.textContent = `Page ${currentPage + 1} / ${totalPages}`;
                 prevBtn.disabled = (currentPage === 0);
                 nextBtn.disabled = (currentPage === totalPages - 1);
 
-                var dotsHtml = '';
-                for (var i = 0; i < totalPages; i++) {
-                    dotsHtml += '<button class="page-dot ' + (i === currentPage ? 'active' : '') + '" onclick="goToPage(' + i + ')"></button>';
+                let dotsHtml = '';
+                for (let i = 0; i < totalPages; i++) {
+                    dotsHtml += `<button class="page-dot ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})"></button>`;
                 }
                 pageDots.innerHTML = dotsHtml;
             }
@@ -1405,35 +1397,126 @@
             overlay.addEventListener('click', function(e) {
                 if (e.target.closest('.editable-field')) return;
 
-                var imgRect = img.getBoundingClientRect();
-                var imgX = e.clientX - imgRect.left;
-                var imgY = e.clientY - imgRect.top;
+                const imgRect = img.getBoundingClientRect();
+                const imgX = e.clientX - imgRect.left;
+                const imgY = e.clientY - imgRect.top;
 
                 if (imgX >= 0 && imgX <= imgRect.width && imgY >= 0 && imgY <= imgRect.height) {
-                    var percentX = (imgX / imgRect.width) * 100;
-                    var percentY = (imgY / imgRect.height) * 100;
-                    createEditableField(percentX, percentY);
+                    const percentX = (imgX / imgRect.width) * 100;
+                    const percentY = (imgY / imgRect.height) * 100;
+                    
+                    const fieldType = currentInsertMode; // 'text' or 'check'
+                    const textContent = fieldType === 'check' ? '✔' : '';
+                    const defaultFontSize = fieldType === 'check' ? 18 : 14;
+                    createEditableField(percentX, percentY, textContent, fieldType, defaultFontSize);
 
-                    var promptEl = document.getElementById('addTextPrompt');
+                    const promptEl = document.getElementById('addTextPrompt');
                     if (promptEl) promptEl.classList.add('hidden');
                 }
             });
 
             // ============================================================
-            // CREATE EDITABLE FIELD - Center-aligned
+            // CREATE EDITABLE FIELD WITH BORDERLESS DESIGN & FONT SIZE RESIZING
             // ============================================================
-            function createEditableField(x, y, text) {
-                text = text || '';
-                var div = document.createElement('div');
-                div.className = 'editable-field';
-                div.contentEditable = true;
+            function createEditableField(x, y, text = '', fieldType = 'text', fontSize = 14) {
+                const div = document.createElement('div');
+                div.className = 'editable-field' + (fieldType === 'check' ? ' check-box-field' : '');
                 div.style.left = x + '%';
                 div.style.top = y + '%';
-                div.textContent = text || '';
+                div.dataset.fieldType = fieldType;
                 div.dataset.fieldId = 'field-' + (++fieldCounter);
 
+                // Top Drag Handle with Font Size Adjusters (+ / -)
+                const dragHandle = document.createElement('div');
+                dragHandle.className = 'drag-handle';
+                
+                const dragTitle = document.createElement('span');
+                dragTitle.innerHTML = '<i class="fas fa-grip-horizontal"></i> Drag';
+                dragHandle.appendChild(dragTitle);
+
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'handle-actions';
+
+                const decreaseFontBtn = document.createElement('button');
+                decreaseFontBtn.className = 'font-resize-btn';
+                decreaseFontBtn.textContent = 'A-';
+                decreaseFontBtn.title = 'Decrease text size';
+                decreaseFontBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    let currentSize = parseInt(contentDiv.style.fontSize) || fontSize;
+                    if (currentSize > 8) {
+                        currentSize -= 2;
+                        fontSize = currentSize;
+                        contentDiv.style.fontSize = currentSize + 'px';
+                        saveEdits();
+                    }
+                });
+
+                const increaseFontBtn = document.createElement('button');
+                increaseFontBtn.className = 'font-resize-btn';
+                increaseFontBtn.textContent = 'A+';
+                increaseFontBtn.title = 'Increase text size';
+                increaseFontBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    let currentSize = parseInt(contentDiv.style.fontSize) || fontSize;
+                    if (currentSize < 72) {
+                        currentSize += 2;
+                        fontSize = currentSize;
+                        contentDiv.style.fontSize = currentSize + 'px';
+                        saveEdits();
+                    }
+                });
+
+                actionsDiv.appendChild(decreaseFontBtn);
+                actionsDiv.appendChild(increaseFontBtn);
+                dragHandle.appendChild(actionsDiv);
+                div.appendChild(dragHandle);
+
+                // Field Content Area
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'field-content';
+                contentDiv.textContent = text;
+                contentDiv.style.fontSize = fontSize + 'px';
+                
+                if (fieldType === 'text') {
+                    contentDiv.contentEditable = true;
+                } else {
+                    contentDiv.contentEditable = false;
+                }
+                div.appendChild(contentDiv);
+
+                // Dragging logic attached to the top handle
+                dragHandle.addEventListener('pointerdown', function(e) {
+                    e.stopPropagation();
+                    const startX = e.clientX;
+                    const startY = e.clientY;
+                    const imgRect = img.getBoundingClientRect();
+                    const initialLeft = parseFloat(div.style.left) || 0;
+                    const initialTop = parseFloat(div.style.top) || 0;
+
+                    function onPointerMove(moveEvent) {
+                        const dx = moveEvent.clientX - startX;
+                        const dy = moveEvent.clientY - startY;
+
+                        const newX = initialLeft + (dx / imgRect.width) * 100;
+                        const newY = initialTop + (dy / imgRect.height) * 100;
+
+                        div.style.left = Math.max(0, Math.min(100, newX)) + '%';
+                        div.style.top = Math.max(0, Math.min(100, newY)) + '%';
+                    }
+
+                    function onPointerUp() {
+                        window.removeEventListener('pointermove', onPointerMove);
+                        window.removeEventListener('pointerup', onPointerUp);
+                        saveEdits();
+                    }
+
+                    window.addEventListener('pointermove', onPointerMove);
+                    window.addEventListener('pointerup', onPointerUp);
+                });
+
                 // Delete button
-                var deleteBtn = document.createElement('button');
+                const deleteBtn = document.createElement('button');
                 deleteBtn.className = 'delete-btn';
                 deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
                 deleteBtn.addEventListener('click', function(e) {
@@ -1441,42 +1524,42 @@
                     div.remove();
                     saveEdits();
                     if (document.querySelectorAll('.editable-field').length === 0) {
-                        var promptEl = document.getElementById('addTextPrompt');
+                        const promptEl = document.getElementById('addTextPrompt');
                         if (promptEl) promptEl.classList.remove('hidden');
                     }
                 });
                 div.appendChild(deleteBtn);
 
-                // Auto-focus and select
-                div.addEventListener('focus', function() {
-                    var range = document.createRange();
-                    range.selectNodeContents(this);
-                    var sel = window.getSelection();
-                    sel.removeAllRanges();
-                    sel.addRange(range);
-                });
+                if (fieldType === 'text') {
+                    contentDiv.addEventListener('focus', function() {
+                        const range = document.createRange();
+                        range.selectNodeContents(this);
+                        const sel = window.getSelection();
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                    });
 
-                // Save on input
-                div.addEventListener('input', function() {
-                    saveEdits();
-                });
+                    contentDiv.addEventListener('input', function() {
+                        saveEdits();
+                    });
 
-                // Save on blur
-                div.addEventListener('blur', function() {
-                    saveEdits();
-                });
+                    contentDiv.addEventListener('blur', function() {
+                        saveEdits();
+                    });
+                }
 
                 overlay.appendChild(div);
 
-                // Focus and select
-                setTimeout(function() {
-                    div.focus();
-                    var range = document.createRange();
-                    range.selectNodeContents(div);
-                    var sel = window.getSelection();
-                    sel.removeAllRanges();
-                    sel.addRange(range);
-                }, 100);
+                if (fieldType === 'text') {
+                    setTimeout(() => {
+                        contentDiv.focus();
+                        const range = document.createRange();
+                        range.selectNodeContents(contentDiv);
+                        const sel = window.getSelection();
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                    }, 100);
+                }
 
                 saveEdits();
             }
@@ -1485,19 +1568,20 @@
             // SAVE AND LOAD DATA
             // ============================================================
             window.saveEdits = function() {
-                var fields = [];
-                document.querySelectorAll('.editable-field').forEach(function(el) {
+                const fields = [];
+                document.querySelectorAll('.editable-field').forEach(el => {
+                    const contentEl = el.querySelector('.field-content');
                     fields.push({
                         x: parseFloat(el.style.left) || 0,
                         y: parseFloat(el.style.top) || 0,
-                        text: el.textContent || '',
-                        width: el.offsetWidth || 40,
-                        height: el.offsetHeight || 24,
+                        text: contentEl ? contentEl.textContent : '',
+                        fieldType: el.dataset.fieldType || 'text',
+                        fontSize: contentEl ? parseInt(contentEl.style.fontSize) || 14 : 14,
                         page: currentPage
                     });
                 });
 
-                var key = currentPermitType + '_page_' + currentPage;
+                const key = currentPermitType + '_page_' + currentPage;
                 if (!savedData[key]) savedData[key] = {};
                 savedData[key].fields = fields;
 
@@ -1505,62 +1589,24 @@
             };
 
             function loadSavedData(permitType) {
-                var promptEl = document.getElementById('addTextPrompt');
+                const promptEl = document.getElementById('addTextPrompt');
                 overlay.innerHTML = '';
                 if (promptEl) {
                     overlay.appendChild(promptEl);
                 }
 
-                var key = permitType + '_page_' + currentPage;
-                var data = savedData[key];
+                const key = permitType + '_page_' + currentPage;
+                const data = savedData[key];
 
                 if (data && data.fields) {
-                    data.fields.forEach(function(fieldData) {
-                        var div = document.createElement('div');
-                        div.className = 'editable-field';
-                        div.contentEditable = true;
-                        div.style.left = fieldData.x + '%';
-                        div.style.top = fieldData.y + '%';
-                        if (fieldData.width) div.style.width = fieldData.width + 'px';
-                        if (fieldData.height) div.style.height = fieldData.height + 'px';
-                        div.textContent = fieldData.text || '';
-                        div.dataset.fieldId = 'field-' + (++fieldCounter);
-
-                        var deleteBtn = document.createElement('button');
-                        deleteBtn.className = 'delete-btn';
-                        deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
-                        deleteBtn.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            div.remove();
-                            saveEdits();
-                            if (document.querySelectorAll('.editable-field').length === 0) {
-                                var promptEl2 = document.getElementById('addTextPrompt');
-                                if (promptEl2) promptEl2.classList.remove('hidden');
-                            }
-                        });
-                        div.appendChild(deleteBtn);
-
-                        div.addEventListener('focus', function() {
-                            var range = document.createRange();
-                            range.selectNodeContents(this);
-                            var sel = window.getSelection();
-                            sel.removeAllRanges();
-                            sel.addRange(range);
-                        });
-
-                        div.addEventListener('input', function() {
-                            saveEdits();
-                        });
-
-                        div.addEventListener('blur', function() {
-                            saveEdits();
-                        });
-
-                        overlay.appendChild(div);
+                    data.fields.forEach(fieldData => {
+                        const fType = fieldData.fieldType || 'text';
+                        const fSize = fieldData.fontSize || (fType === 'check' ? 18 : 14);
+                        createEditableField(fieldData.x, fieldData.y, fieldData.text || (fType === 'check' ? '✔' : ''), fType, fSize);
                     });
 
                     if (data.fields.length > 0) {
-                        var promptEl2 = document.getElementById('addTextPrompt');
+                        const promptEl2 = document.getElementById('addTextPrompt');
                         if (promptEl2) promptEl2.classList.add('hidden');
                     }
                 }
@@ -1571,44 +1617,39 @@
             // ============================================================
             window.clearAllFields = function() {
                 if (!confirm('Clear all fields on this page?')) return;
-                document.querySelectorAll('.editable-field').forEach(function(el) { el.remove(); });
-                var promptEl = document.getElementById('addTextPrompt');
+                document.querySelectorAll('.editable-field').forEach(el => el.remove());
+                const promptEl = document.getElementById('addTextPrompt');
                 if (promptEl) promptEl.classList.remove('hidden');
                 saveEdits();
             };
 
             // ============================================================
-            // SUBMIT PERMIT - FIREBASE VERSION
+            // SUBMIT PERMIT
             // ============================================================
             window.submitPermit = function() {
                 saveEdits();
 
-                // Collect all fields from all pages
-                var allFields = [];
-                for (var key in savedData) {
+                let allFields = [];
+                for (let key in savedData) {
                     if (savedData[key] && savedData[key].fields) {
-                        savedData[key].fields.forEach(function(f) {
+                        savedData[key].fields.forEach(f => {
                             allFields.push(f);
                         });
                     }
                 }
 
-                var permitData = permitImages[currentPermitType];
-                var displayName = permitData ? permitData.name : currentPermitName;
-                var userName = sessionStorage.getItem('userName') || 'User';
-                var userEmail = sessionStorage.getItem('userEmail') || 'user@email.com';
-                var uid = sessionStorage.getItem('userUid');
-                var now = new Date();
-                var today = now.toISOString().split('T')[0];
-                var nowFormatted = formatDateTime(now);
+                const permitData = permitImages[currentPermitType];
+                const displayName = permitData ? permitData.name : currentPermitName;
+                const userName = sessionStorage.getItem('userName') || 'User';
+                const userEmail = sessionStorage.getItem('userEmail') || 'user@email.com';
+                const now = new Date();
+                const today = now.toISOString().split('T')[0];
+                const nowFormatted = formatDateTime(now);
+                const timestamp = now.toISOString();
 
-                // Generate Application ID
-                var appId = 'APP-2026-' + String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+                const appId = 'APP-2026-' + String(Math.floor(Math.random() * 1000)).padStart(3, '0');
 
-                // ============================================================
-                // 1. CREATE APPLICATION DATA
-                // ============================================================
-                var newApplication = {
+                const newApplication = {
                     appId: appId,
                     type: displayName,
                     permitType: currentPermitType,
@@ -1616,82 +1657,57 @@
                     status: 'Pending',
                     applicant: userName,
                     email: userEmail,
-                    uid: uid,
-                    description: allFields.map(function(f) { return f.text; }).join(', ') || 'No details provided',
+                    description: allFields.map(f => f.text).join(', ') || 'No details provided',
                     location: 'Pagbilao, Quezon',
                     additionalInfo: 'Fields: ' + allFields.length,
                     fields: allFields,
                     totalPages: totalPages,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    timestamp: timestamp
                 };
 
-                // ============================================================
-                // 2. SAVE APPLICATION TO FIRESTORE
-                // ============================================================
-                db.collection("applications").add(newApplication)
-                    .then(function(docRef) {
-                        console.log('✅ Application created with ID:', docRef.id);
+                const applications = JSON.parse(localStorage.getItem('userApplications') || '[]');
+                applications.unshift(newApplication);
+                localStorage.setItem('userApplications', JSON.stringify(applications));
 
-                        // ============================================================
-                        // 3. CREATE PENDING PERMIT
-                        // ============================================================
-                        var pendingPermit = {
-                            permitNo: '⏳ Pending',
-                            type: displayName,
-                            dateIssued: '—',
-                            expiryDate: '—',
-                            status: 'Pending',
-                            applicant: userName,
-                            email: userEmail,
-                            uid: uid,
-                            appId: appId,
-                            isPending: true,
-                            archived: false,
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        };
+                const pendingPermit = {
+                    permitNo: '⏳ Pending',
+                    type: displayName,
+                    dateIssued: '—',
+                    expiryDate: '—',
+                    status: 'Pending',
+                    applicant: userName,
+                    email: userEmail,
+                    appId: appId,
+                    isPending: true,
+                    archived: false,
+                    created: timestamp
+                };
 
-                        return db.collection("permits").add(pendingPermit);
-                    })
-                    .then(function(permitRef) {
-                        console.log('✅ Pending permit created with ID:', permitRef.id);
+                const permits = JSON.parse(localStorage.getItem('userPermits') || '[]');
+                permits.unshift(pendingPermit);
+                localStorage.setItem('userPermits', JSON.stringify(permits));
 
-                        // ============================================================
-                        // 4. ADD NOTIFICATION
-                        // ============================================================
-                        return db.collection("notifications").add({
-                            uid: uid,
-                            icon: 'blue',
-                            iconClass: 'fa-info-circle',
-                            message: 'You filed a new <strong>' + displayName + '</strong> application (' + appId + ')',
-                            time: nowFormatted,
-                            unread: true,
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    })
-                    .then(function(notifRef) {
-                        console.log('✅ Notification created with ID:', notifRef.id);
+                const notifications = JSON.parse(localStorage.getItem('userNotifications') || '[]');
+                notifications.unshift({
+                    id: Date.now(),
+                    icon: 'blue',
+                    iconClass: 'fa-info-circle',
+                    message: 'You filed a new <strong>' + displayName + '</strong> application (' + appId + ')',
+                    time: nowFormatted,
+                    timestamp: timestamp,
+                    unread: true
+                });
+                localStorage.setItem('userNotifications', JSON.stringify(notifications));
 
-                        // ============================================================
-                        // 5. SHOW SUCCESS MODAL
-                        // ============================================================
-                        closeImageViewer();
+                closeImageViewer();
 
-                        document.getElementById('successMessage').textContent = 'Your ' + displayName + ' application has been submitted successfully.';
-                        document.getElementById('appIdDisplay').textContent = 'Application ID: ' + appId + ' | Status: Pending';
-                        successOverlay.classList.add('active');
+                document.getElementById('successMessage').textContent = 'Your ' + displayName + ' application has been submitted successfully.';
+                document.getElementById('appIdDisplay').textContent = 'Application ID: ' + appId + ' | Status: Pending';
+                successOverlay.classList.add('active');
 
-                        console.log('✅ Application submitted:', appId);
-                        console.log('📝 Fields saved:', allFields.length);
-
-                        // Redirect after delay
-                        setTimeout(function() {
-                            window.location.href = 'dashboard.html?success=submitted';
-                        }, 3000);
-                    })
-                    .catch(function(err) {
-                        console.error('❌ Submit error:', err);
-                        alert('Error submitting application: ' + err.message);
-                    });
+                setTimeout(function() {
+                    window.location.href = 'dashboard.html?success=submitted';
+                }, 3000);
             };
 
             // ============================================================
@@ -1745,43 +1761,28 @@
             // ============================================================
             // SIDEBAR NAVIGATION
             // ============================================================
-            var navItems = document.querySelectorAll('.sidebar-nav li');
+            const navItems = document.querySelectorAll('.sidebar-nav li');
             navItems.forEach(function(item) {
                 item.addEventListener('click', function() {
-                    var page = this.dataset.page;
+                    const page = this.dataset.page;
                     if (page === 'file-permit') return;
                     window.location.href = 'dashboard.html';
                 });
             });
 
             // ============================================================
-            // LOGOUT - FIREBASE VERSION
+            // LOGOUT
             // ============================================================
-            var logoutBtn = document.getElementById('logoutBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', function() {
                     if (confirm('Are you sure you want to logout?')) {
-                        var uid = sessionStorage.getItem('userUid');
-                        if (uid) {
-                            db.collection("active_users").doc(uid).delete()
-                                .then(function() {
-                                    return auth.signOut();
-                                })
-                                .then(function() {
-                                    sessionStorage.clear();
-                                    window.location.href = 'index.html';
-                                })
-                                .catch(function(err) {
-                                    console.error('Logout error:', err);
-                                    sessionStorage.clear();
-                                    window.location.href = 'index.html';
-                                });
-                        } else {
-                            auth.signOut().then(function() {
-                                sessionStorage.clear();
-                                window.location.href = 'index.html';
-                            });
-                        }
+                        const activeUsers = JSON.parse(localStorage.getItem('activeUsers') || '[]');
+                        const updated = activeUsers.filter(function(u) { return u.email !== userEmail; });
+                        localStorage.setItem('activeUsers', JSON.stringify(updated));
+                        sessionStorage.clear();
+                        alert('Logging out...');
+                        window.location.href = 'index.html';
                     }
                 });
             }
@@ -1789,8 +1790,8 @@
             // ============================================================
             // TOGGLE SIDEBAR
             // ============================================================
-            var toggleBtn = document.getElementById('toggleSidebar');
-            var sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('toggleSidebar');
+            const sidebar = document.getElementById('sidebar');
             if (toggleBtn) {
                 toggleBtn.addEventListener('click', function() {
                     sidebar.classList.toggle('open');
@@ -1800,8 +1801,8 @@
             // ============================================================
             // USER GREETING
             // ============================================================
-            var userGreeting = document.getElementById('userGreeting');
-            var userName = sessionStorage.getItem('userName') || 'User';
+            const userGreeting = document.getElementById('userGreeting');
+            const userName = sessionStorage.getItem('userName') || 'User';
             if (userGreeting) {
                 userGreeting.textContent = 'Welcome, ' + userName;
             }
@@ -1809,61 +1810,55 @@
             // ============================================================
             // UPDATE NOTIFICATION BADGE
             // ============================================================
-            var notifBadge = document.getElementById('notifBadge');
+            const notifBadge = document.getElementById('notifBadge');
             if (notifBadge) {
-                var uid = sessionStorage.getItem('userUid');
-                if (uid) {
-                    db.collection("notifications")
-                        .where("uid", "==", uid)
-                        .where("unread", "==", true)
-                        .get()
-                        .then(function(snapshot) {
-                            var unreadCount = snapshot.size;
-                            notifBadge.textContent = unreadCount > 0 ? unreadCount : '0';
-                        })
-                        .catch(function(err) {
-                            console.error('Error getting notifications:', err);
-                        });
-                }
+                const notifications = JSON.parse(localStorage.getItem('userNotifications') || '[]');
+                const unreadCount = notifications.filter(function(n) { return n.unread; }).length;
+                notifBadge.textContent = unreadCount > 0 ? unreadCount : '0';
             }
+
+            // ============================================================
+            // BUILDING / OCCUPANCY CATEGORY TOGGLE
+            // ============================================================
+            const buildingSection = document.getElementById('buildingPermitsSection');
+            const occupancySection = document.getElementById('occupancyPermitsSection');
+            const buildingToggle = document.getElementById('buildingToggle');
+            const occupancyToggle = document.getElementById('occupancyToggle');
+            const pageTitle = document.getElementById('pageTitle');
+            const permitTypeDisplay = document.getElementById('permitTypeDisplay');
+
+            window.switchPermitCategory = function(category) {
+                const isBuilding = category === 'building';
+
+                buildingSection.style.display = isBuilding ? 'block' : 'none';
+                occupancySection.style.display = isBuilding ? 'none' : 'block';
+
+                buildingToggle.classList.toggle('active', isBuilding);
+                occupancyToggle.classList.toggle('active', !isBuilding);
+
+                buildingToggle.setAttribute('aria-selected', isBuilding ? 'true' : 'false');
+                occupancyToggle.setAttribute('aria-selected', isBuilding ? 'false' : 'true');
+
+                const categoryName = isBuilding ? 'Building Permit' : 'Occupancy Permit';
+                pageTitle.textContent = 'File Permit - ' + categoryName;
+                if (permitTypeDisplay) {
+                    permitTypeDisplay.textContent = categoryName;
+                }
+
+                sessionStorage.setItem('permitType', category);
+                sessionStorage.setItem('permitName', categoryName);
+            };
 
             // ============================================================
             // SETUP PAGE
             // ============================================================
-            var mainPermitType = sessionStorage.getItem('permitType') || 'building';
-            var mainPermitName = sessionStorage.getItem('permitName') || 'Building Permit';
-            var buildingSection = document.getElementById('buildingPermitsSection');
-            var occupancySection = document.getElementById('occupancyPermitsSection');
-            var pageTitle = document.getElementById('pageTitle');
-            var permitTypeDisplay = document.getElementById('permitTypeDisplay');
+            const mainPermitType = sessionStorage.getItem('permitType') || 'building';
 
-            pageTitle.textContent = 'File Permit - ' + mainPermitName;
-            if (permitTypeDisplay) {
-                permitTypeDisplay.textContent = mainPermitName;
-            }
-
-            if (mainPermitType === 'building') {
-                buildingSection.style.display = 'block';
-                occupancySection.style.display = 'none';
-            } else if (mainPermitType === 'occupancy') {
-                buildingSection.style.display = 'none';
-                occupancySection.style.display = 'block';
+            if (mainPermitType === 'occupancy') {
+                switchPermitCategory('occupancy');
             } else {
-                buildingSection.style.display = 'block';
-                occupancySection.style.display = 'none';
+                switchPermitCategory('building');
             }
-
-            // ============================================================
-            // AUTH STATE CHECK
-            // ============================================================
-            auth.onAuthStateChanged(function(user) {
-                if (!user) {
-                    window.location.href = 'index.html';
-                }
-            });
-
-            console.log('✅ Permit Form with Firebase ready');
-            console.log('Data flow: Form → Firebase → My Permits (Pending) → Admin Review → My Permits (Active)');
 
         })();
     </script>

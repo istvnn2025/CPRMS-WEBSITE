@@ -720,7 +720,6 @@
             };
             const icon = iconMap[notif.icon] || 'fa-info-circle';
             
-            // Use timestamp for accurate time display
             const timeLabel = getTimeLabel(notif.timestamp || notif.time || new Date().toISOString());
             
             html += `
